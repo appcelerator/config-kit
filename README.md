@@ -41,7 +41,7 @@ This project is open source under the [Apache Public License v2][1] and is devel
 [Axway, Inc](http://www.axway.com/) and the community. Please read the [`LICENSE`][1] file included
 in this distribution for more information.
 
-[1]: https://github.com/appcelerator/titaniumlib/blob/master/LICENSE
+[1]: https://github.com/appcelerator/config-kit/blob/master/LICENSE
 [npm-image]: https://img.shields.io/npm/v/config-kit.svg
 [npm-url]: https://npmjs.org/package/config-kit
 [downloads-image]: https://img.shields.io/npm/dm/config-kit.svg
