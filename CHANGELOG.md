@@ -1,3 +1,7 @@
+# v1.0.1
+
+ * fix: Added object check when checking if object changed during watch handler execution.
+
 # v1.0.0 (Mar 27, 2020)
 
   * Initial release with support for:

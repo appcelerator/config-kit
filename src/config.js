@@ -554,11 +554,12 @@ export default class Config {
 		if (!handlers) {
 			this.watcherMap.set(handler, handlers = []);
 		}
+
 		handlers.push(desc = { filter });
 
 		const wrapped = (obj, ...args) => {
 			// get the last value so we can dedupe
-			const val = obj !== undefined && obj[Node.Meta].hash;
+			const val = obj?.[Node.Meta]?.hash || obj;
 			if (desc.last !== val) {
 				desc.last = val;
 				handler(obj, ...args);
