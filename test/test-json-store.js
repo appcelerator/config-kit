@@ -771,5 +771,48 @@ describe('JSONStore', () => {
 			expect(allCounter).to.equal(4);
 			expect(barbazCounter).to.equal(4);
 		});
+
+		it('should watch a node that changes from an object to a non-object', () => {
+			class MyConfig extends Config {
+				constructor(opts) {
+					super(opts);
+
+					this.layers.add({
+						id: 'user',
+						store: new JSONStore()
+					});
+
+					this.layers.add({
+						id: 'blah',
+						store: new JSONStore()
+					});
+
+					this.layers.add({
+						id: 'runtime',
+						store: new JSONStore()
+					});
+				}
+
+				resolve() {
+					return [ 'runtime', 'user' ];
+				}
+			}
+
+			const cfg = new MyConfig({
+				data: {
+					foo: {
+						bar: 'baz'
+					},
+					fiz: {
+						pow: 'wam'
+					}
+				}
+			});
+
+			const callback = sinon.spy();
+			cfg.watch('foo', callback);
+			cfg.set('foo', 'wiz');
+			expect(callback).to.have.been.calledWith('wiz');
+		});
 	});
 });
