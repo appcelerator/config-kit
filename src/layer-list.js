@@ -1,7 +1,6 @@
 import Layer from './layer';
 import snooplogg from 'snooplogg';
-
-import { arrayify, validate } from './util';
+import { arrayify, hashValue, validate } from './util';
 
 const { log } = snooplogg('config-kit')('layer-list');
 const { highlight } = snooplogg.styles;
@@ -85,7 +84,7 @@ export default class LayerList {
 
 		const existing = this.map[layer.id];
 		if (existing) {
-			for (const prop of [ 'file', 'namespace', 'order', 'readonly', 'schema', 'static' ]) {
+			for (const prop of [ 'namespace', 'order', 'readonly', 'schema', 'static' ]) {
 				if (!Object.prototype.hasOwnProperty.call(layer, prop)) {
 					layer[prop] = existing[prop];
 				}
@@ -106,7 +105,10 @@ export default class LayerList {
 		layer.allowNulls = this.allowNulls;
 
 		if (!isLayer) {
+			log(`Creating new layer: ${highlight(String(layer.id))}`);
 			layer = new Layer(layer);
+		} else if (existing && Object.prototype.hasOwnProperty.call(existing, 'file')) {
+			layer.file = existing.file;
 		}
 
 		this.map[layer.id] = layer;
@@ -128,6 +130,7 @@ export default class LayerList {
 			this.layers.push(layer);
 		}
 
+		// add the watchers to this layer
 		for (const { filter, handler } of this.watchers) {
 			layer.watch(filter, handler);
 		}
@@ -302,7 +305,7 @@ export default class LayerList {
 
 		log(`Registering watcher: ${highlight(`${handler.name}()`)} ${filter.length ? filter.join('.') : ''}`);
 
-		this.watchers.push({ filter, handler });
+		this.watchers.push({ filter, filterHash: hashValue(filter), handler });
 
 		for (const layer of this.layers) {
 			layer.watch(filter, handler);

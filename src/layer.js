@@ -6,7 +6,6 @@ import path from 'path';
 import snooplogg from 'snooplogg';
 import Store from './store';
 import Values from '@hapi/joi/lib/values';
-
 import { getSchemaInitialValues, validate } from './util';
 
 const { log } = snooplogg('config-kit')('js-store');
@@ -92,6 +91,8 @@ export default class Layer {
 	 * @param {Boolean} [opts.allowNulls] - Forces all nodes of a schema to allow nulls.
 	 * @param {Object} [opts.data] - Data to initialize the base config layer with.
 	 * @param {String} [opts.file] - The file backing this layer's store.
+	 * @param {Boolean} [opts.graceful=true] - Try to load the file, but if it doesn't exist, then
+	 * gracefully handle the error.
 	 * @param {String|Symbol} [opts.id] - The layer id.
 	 * @param {String} [opts.namespace] - The name of the scope encompassing this layer's data and
 	 * schema if not already defined.
@@ -141,7 +142,7 @@ export default class Layer {
 		}
 
 		if (opts.file) {
-			this.load(opts.file, true);
+			this.load(opts.file, opts.graceful !== false);
 		}
 
 		if (env) {
@@ -440,8 +441,7 @@ export default class Layer {
 	/**
 	 * Registers a watch handler.
 	 *
-	 * @param {String|Array.<String>} [filter] - A property name or array of nested properties to
-	 * watch.
+	 * @param {Array.<String>} [filter] - A property name or array of nested properties to watch.
 	 * @param {Function} handler - A callback to fire when a change occurs.
 	 * @returns {Layer}
 	 * @access public

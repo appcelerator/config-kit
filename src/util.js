@@ -75,6 +75,22 @@ export function getSchemaInitialValues(schema) {
 }
 
 /**
+ * Hashes a value quick and dirty.
+ *
+ * @param {*} it - A value to hash.
+ * @returns {Number}
+ */
+export function hashValue(it) {
+	const str = JSON.stringify(it) || '';
+	let hash = 5381;
+	let i = str.length;
+	while (i) {
+		hash = hash * 33 ^ str.charCodeAt(--i);
+	}
+	return hash >>> 0;
+}
+
+/**
  * Validates and splits a key into an array.
  *
  * @param {String|Array<String>} key - The key to split. If the key is an array, then it is simply
