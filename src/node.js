@@ -1,3 +1,5 @@
+import { hashValue } from './util';
+
 /**
  * A node in the config tree that represents the union of a XML node and a schema node.
  */
@@ -43,7 +45,8 @@ export default class Node {
 					for (const [ listener, filter ] of this.listeners) {
 						if (filter) {
 							const { found, hash, value } = filterObject(node, filter);
-							const changed = (found && !this.previous) || (this.previous && hash !== this.previous.get(listener));
+							const hasPrev = this.previous?.has(listener);
+							const changed = (found && !hasPrev) || (hasPrev && hash !== this.previous.get(listener));
 
 							if (!this.previous) {
 								this.previous = new WeakMap();
@@ -103,7 +106,7 @@ export default class Node {
 					}
 				}
 
-				this.hash = hashValue(isArray ? this.hashes : Object.values(this.hashes));
+				this.hash = hashValue(this.hashes);
 
 				if (!isCtor && hash !== this.hash) {
 					for (const parent of this.parents) {
@@ -309,7 +312,7 @@ export default class Node {
 				target[prop] = value;
 
 				internal.hashes[prop] = hash;
-				internal.hash = hashValue(Array.isArray(target) ? internal.hashes : Object.values(internal.hashes));
+				internal.hash = hashValue(internal.hashes);
 
 				for (const parent of internal.parents) {
 					parent[Node.Meta].rehash();
@@ -455,24 +458,11 @@ function filterObject(node, filter) {
 			break;
 		}
 		hash = value[Node.Meta].hashes[key];
+		if (hash === undefined) {
+			hash = null;
+		}
 		value = value[key];
 	}
 
 	return { found, hash, value };
-}
-
-/**
- * Hashes a value quick and dirty.
- *
- * @param {*} it - A value to hash.
- * @returns {Number}
- */
-function hashValue(it) {
-	const str = JSON.stringify(it) || '';
-	let hash = 5381;
-	let i = str.length;
-	while (i) {
-		hash = hash * 33 ^ str.charCodeAt(--i);
-	}
-	return hash >>> 0;
 }

@@ -266,8 +266,7 @@ export default class JSONStore extends Store {
 	/**
 	 * Registers a watch handler.
 	 *
-	 * @param {String|Array.<String>} [filter] - A property name or array of nested properties to
-	 * watch.
+	 * @param {Array.<String>} [filter] - A property name or array of nested properties to watch.
 	 * @param {Function} handler - A callback to fire when a change occurs.
 	 * @returns {JSONStore}
 	 * @access public

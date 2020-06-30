@@ -4,10 +4,12 @@ import JSONStore from './stores/json-store';
 import LayerList, { All } from './layer-list';
 import Node from './node';
 import path from 'path';
+import snooplogg from 'snooplogg';
 import Store from './store';
 import StoreRegistry from './store-registry';
+import { arrayify, hashValue, splitKey, unique } from './util';
 
-import { arrayify, splitKey, unique } from './util';
+const { log } = snooplogg('config-kit')('config');
 
 const arrayActionRE = /^pop|push|shift|unshift$/;
 
@@ -42,6 +44,19 @@ export default class Config {
 	 * @access public
 	 */
 	layers = null;
+
+	/**
+	 * Internal counter for change notifications.
+	 * @type {Number}
+	 */
+	paused = 0;
+
+	/**
+	 * A map of pending notifications by filter hash to `Map` instances. Each `Map` instance ties
+	 * the handler to the watch filter and event arguments.
+	 * @type {Object}
+	 */
+	pending = {};
 
 	/**
 	 * Tracks the store types by file extension.
@@ -126,6 +141,16 @@ export default class Config {
 		}
 	}
 
+	/**
+	 * Retrieves the data store for a specific layer.
+	 *
+	 * Note that not all stores expose their internal data structure. This method is leaky and
+	 * probably should be removed someday.
+	 *
+	 * @param {String|Symbol} id - The layer id.
+	 * @returns {Object}
+	 * @access public
+	 */
 	data(id) {
 		return this.layers.get(id)?.store?.data;
 	}
@@ -285,11 +310,69 @@ export default class Config {
 		}
 
 		for (const id of unique(opts.id || this.resolve({ action: 'load', tags }))) {
-			this.layers.add({
+			const existing = this.layers.get(id);
+
+			const layer = this.layers.add({
 				...opts,
+				file,
+				graceful: false,
 				id,
 				store: new StoreClass()
-			}).load(file);
+			});
+
+			if (existing) {
+				// if we already have an existing layer, then this is considered a "reload" and we
+				// need to determine if the contents changed, specifically any filtered data
+
+				this._pause();
+
+				// we need to loop over the list of watchers that the `LayerList` has already
+				// copied from the existing layer to the new layer
+
+				// to optimize performance, both the value and hash for the existing and new
+				// layers is cached per filter
+
+				// if the values are objects, then compare hashes, otherwise compare values and if
+				// there's a discrepancy, queue the change notification
+
+				const existingHashes = {};
+				const existingValues = {};
+				const newHashes = {};
+				const newValues = {};
+
+				for (const { filter, filterHash, handler } of this.layers.watchers) {
+					let existingHash, existingValue, newHash, newValue;
+
+					if (Object.prototype.hasOwnProperty.call(existingHashes, filterHash)) {
+						existingValue = existingValues[filterHash];
+						existingHash = existingHashes[filterHash];
+					} else {
+						existingValue = existingValues[filterHash] = existing.get(filter);
+						existingHash = existingHashes[filterHash] = existingValue?.[Node.Meta]?.hash;
+					}
+
+					if (Object.prototype.hasOwnProperty.call(newHashes, filterHash)) {
+						newValue = newValues[filterHash];
+						newHash = newHashes[filterHash];
+					} else {
+						newValue = newValues[filterHash] = layer.get(filter);
+						newHash = newHashes[filterHash] = newValue?.[Node.Meta]?.hash;
+					}
+
+					// if there was an existing node and the hash of the existing layer and the new layer are
+					// different, then notify the handler immediately
+					if ((existingHash !== newHash) || ((existingHash === undefined || newHash === undefined) && existingValue !== newValue)) {
+						// hashes are different -or- value changed type and only one has a type, then compare values
+						if (!this.pending[filterHash]) {
+							this.pending[filterHash] = new Map();
+						}
+						log(`Detected change in loaded file${filter.length ? ` with filter "${filter.join('.')}"` : ''}`);
+						this.pending[filterHash].set(handler, { args: [ layer ], filter, value: newValue });
+					}
+				}
+
+				this._resume();
+			}
 		}
 
 		return this;
@@ -344,12 +427,45 @@ export default class Config {
 			}
 		}
 
+		this._pause();
+
 		for (const _id of unique(id || this.resolve({ action }))) {
 			const layer = this.layers.get(_id) || this.layers.add(_id);
 			layer.set(key, value, action);
 		}
 
+		this._resume();
+
 		return result;
+	}
+
+	/**
+	 * Internal helper for dispatching change notifications.
+	 *
+	 * @access private
+	 */
+	_notify() {
+		const pending = Object.entries(this.pending);
+		if (pending.length) {
+			log(`Notifying ${pending.length} listener${pending.length !== 1 ? 's' : ''}`);
+
+			for (const [ filterHash, handlers ] of pending) {
+				delete this.pending[filterHash];
+				for (const [ handler, { args, filter, value } ] of handlers) {
+					handler(value !== undefined ? value : this.get(filter), ...args);
+				}
+				handlers.clear();
+			}
+		}
+	}
+
+	/**
+	 * Increments the pause counter.
+	 *
+	 * @access private
+	 */
+	_pause() {
+		this.paused++;
 	}
 
 	/**
@@ -393,6 +509,18 @@ export default class Config {
 	 */
 	resolve() {
 		return Config.Base;
+	}
+
+	/**
+	 * ?
+	 *
+	 * @access private
+	 */
+	_resume() {
+		this.paused = Math.max(0, this.paused - 1);
+		if (!this.paused) {
+			this._notify();
+		}
 	}
 
 	/**
@@ -544,7 +672,7 @@ export default class Config {
 
 		filter = splitKey(filter);
 		let handlers = this.watcherMap.get(handler);
-		let desc = handlers && handlers.find(desc => !(desc.filter < filter || desc.filter > filter));
+		let desc = handlers?.find(desc => !(desc.filter < filter || desc.filter > filter));
 
 		// check if this handler is already registered
 		if (desc) {
@@ -555,20 +683,25 @@ export default class Config {
 			this.watcherMap.set(handler, handlers = []);
 		}
 
-		handlers.push(desc = { filter });
+		desc = {
+			filter,
+			last: null,
+			wrapped: (...args) => {
+				const filterHash = hashValue(filter);
 
-		const wrapped = (obj, ...args) => {
-			// get the last value so we can dedupe
-			const val = obj?.[Node.Meta]?.hash || obj;
-			if (desc.last !== val) {
-				desc.last = val;
-				handler(obj, ...args);
+				if (!this.pending[filterHash]) {
+					this.pending[filterHash] = new Map();
+				}
+				this.pending[filterHash].set(handler, { args, filter });
+
+				if (!this.paused) {
+					this._notify();
+				}
 			}
 		};
 
-		desc.wrapped = wrapped;
-
-		this.layers.watch(filter, wrapped);
+		handlers.push(desc);
+		this.layers.watch(filter, desc.wrapped);
 		return this;
 	}
 }
