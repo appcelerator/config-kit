@@ -10,6 +10,7 @@ import StoreRegistry from './store-registry';
 import { arrayify, hashValue, splitKey, unique } from './util';
 
 const { log } = snooplogg('config-kit')('config');
+const { highlight } = snooplogg.styles;
 
 const arrayActionRE = /^pop|push|shift|unshift$/;
 
@@ -275,6 +276,8 @@ export default class Config {
 	 *
 	 * @param {String} file - The path to the config file to load.
 	 * @param {Object} [opts] - Various options.
+	 * @param {Boolean} [opts.graceful=false] - When `true`, doesn't error if the config file does
+	 * not exist.
 	 * @param {Object} [opts.id] - The layer id to load the file into. If the layer id does not
 	 * exist, it will create it.
 	 * @param {String} [opts.namespace] - The name of the scope encompassing this layer's data and
@@ -309,13 +312,17 @@ export default class Config {
 			throw new Error(`Unsupported file type "${ext ? `.${ext}` : filename}"`);
 		}
 
-		for (const id of unique(opts.id || this.resolve({ action: 'load', tags }))) {
+		const layers = unique(opts.id || this.resolve({ action: 'load', tags }));
+
+		log(`Loading ${highlight(file)} into ${layers.map(s => highlight(String(s))).join(', ')}`);
+
+		for (const id of layers) {
 			const existing = this.layers.get(id);
 
 			const layer = this.layers.add({
 				...opts,
 				file,
-				graceful: false,
+				graceful: !!opts.graceful,
 				id,
 				store: new StoreClass()
 			});
