@@ -1,3 +1,8 @@
+# v1.2.0 (Jul 2, 2020)
+
+ * feat(config): Added `graceful` flag to `load()` that won't throw an error if the file does not
+   exist.
+
 # v1.1.0 (Jun 30, 2020)
 
  * fix(config): Fixed bug when loading a layer that already exists with a file that was causing the
