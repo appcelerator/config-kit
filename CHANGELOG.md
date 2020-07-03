@@ -1,3 +1,10 @@
+# v1.2.1 (Jul 3, 2020)
+
+ * fix(config): Fixed duplicate watch events when deleting across multiple layers.
+ * fix(node): Node hash was not being properly calculated when a property was deleted.
+ * style: Added debug logging to the config mutation functions: `delete()`, `set()`, `push()`,
+   `pop()`, `shift()`, and `unshift()`.
+
 # v1.2.0 (Jul 2, 2020)
 
  * feat(config): Added `graceful` flag to `load()` that won't throw an error if the file does not
