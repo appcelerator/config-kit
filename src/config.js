@@ -168,11 +168,16 @@ export default class Config {
 		key = splitKey(key);
 		let deleted = false;
 
+		this._pause();
+
 		for (const layer of this.layers.query(id)) {
 			if (layer) {
+				log(`Deleting ${highlight(key.join('.'))} on layer ${highlight(String(layer.id))}`);
 				deleted = layer.delete(key) || deleted;
 			}
 		}
+
+		this._resume();
 
 		return deleted;
 	}
@@ -409,6 +414,8 @@ export default class Config {
 	 * Internal helper for invoking mutator methods on the layer.
 	 *
 	 * @param {Object} opts - Various options.
+	 * @param {String} opts.action - The action to perform. Must be 'set', 'push', 'pop', 'shift',
+	 * or 'unshift'.
 	 * @returns {*}
 	 * @access private
 	 */
@@ -420,16 +427,20 @@ export default class Config {
 		}
 
 		let result;
+		let label = 'Setting';
 
 		if (arrayActionRE.test(action)) {
 			const existing = unique(this.get(key));
 
 			if (action === 'pop' || action === 'shift') {
+				label = action === 'pop' ? 'Popping' : 'Shifting';
 				result = existing[action]();
 				value = existing;
 			} else if (action === 'push') {
+				label = 'Pushing';
 				value = unique(Array.isArray(value) ? [ ...existing, ...value ] : [ ...existing, value ]);
 			} else {
+				label = 'Unshifting';
 				value = unique(Array.isArray(value) ? [ ...value, ...existing ] : [ value, ...existing ]);
 			}
 		}
@@ -438,6 +449,8 @@ export default class Config {
 
 		for (const _id of unique(id || this.resolve({ action }))) {
 			const layer = this.layers.get(_id) || this.layers.add(_id);
+			const type = Array.isArray(value) ? 'array' : typeof value;
+			log(`${label} ${highlight(key.join('.'))} to a${type === 'array' || type === 'object' ? 'n' : ''} ${highlight(type)} on layer ${highlight(String(layer.id))}`);
 			layer.set(key, value, action);
 		}
 
@@ -692,7 +705,6 @@ export default class Config {
 
 		desc = {
 			filter,
-			last: null,
 			wrapped: (...args) => {
 				const filterHash = hashValue(filter);
 

@@ -214,7 +214,7 @@ export default class Node {
 					result = delete target[prop];
 
 					delete internal.hashes[prop];
-					internal.hash = hashValue(Object.values(internal.hashes));
+					internal.hash = hashValue(internal.hashes);
 
 					if (result) {
 						internal.notify(node);
