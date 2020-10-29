@@ -50,4 +50,4 @@ in this distribution for more information.
 [david-url]: https://david-dm.org/appcelerator/config-kit
 [david-dev-image]: https://img.shields.io/david/dev/appcelerator/config-kit.svg
 [david-dev-url]: https://david-dm.org/appcelerator/config-kit#info=devDependencies
-[joi]: https://www.npmjs.com/package/@hapi/joi
+[joi]: https://www.npmjs.com/package/joi

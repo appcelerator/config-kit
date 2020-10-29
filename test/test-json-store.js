@@ -286,6 +286,20 @@ describe('JSONStore', () => {
 			expect(cfg.has('foo.pow')).to.equal(true);
 			expect(cfg.has('foo.pow.wiz')).to.equal(false);
 		});
+
+		it('should handle empty key', () => {
+			let cfg = new Config();
+			expect(cfg.has([])).to.equal(true);
+
+			cfg = new Config({
+				data: {
+					foo: {
+						pow: true
+					}
+				}
+			});
+			expect(cfg.has([])).to.equal(true);
+		});
 	});
 
 	describe('data()', () => {

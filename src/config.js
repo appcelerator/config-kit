@@ -1,7 +1,7 @@
-import Joi from '@hapi/joi';
+import Joi from 'joi';
 import JSStore from './stores/js-store';
 import JSONStore from './stores/json-store';
-import LayerList, { All } from './layer-list';
+import LayerList, { All, Base } from './layer-list';
 import Node from './node';
 import path from 'path';
 import snooplogg from 'snooplogg';
@@ -30,7 +30,7 @@ export default class Config {
 	 * @type {Symbol}
 	 * @access public
 	 */
-	static Base = Symbol('base');
+	static Base = Base;
 
 	/**
 	 * A reference to the Joi schema library.
@@ -83,7 +83,7 @@ export default class Config {
 	 * @param {String} [opts.file] - The file to associate with the base layer.
 	 * @param {Object|Layer|Array.<Object|Layer>} [opts.layers] - One or more layers to add in
 	 * addition to the base layer.
-	 * @param {Object} [opts.schema] - A Joi schema or object to compile into a Joi schema.
+	 * @param {Object} [opts.schema] - A Joi schema for the base layer.
 	 * @param {Store|Function} [opts.store] - A store instance or store class to use for the base
 	 * layer.
 	 * @param {Function|Array.<Function>} [opts.stores] - A store class or array of store classes
@@ -123,18 +123,11 @@ export default class Config {
 
 		this.layers = new LayerList({
 			allowNulls:   opts.allowNulls,
-			allowUnknown: opts.allowUnknown
-		});
-
-		this.layers.add({
-			data:     opts.data,
-			file:     opts.file,
-			id:       Config.Base,
-			order:    -Infinity,
-			readonly: false,
-			schema:   opts.schema,
-			static:   true,
-			store
+			allowUnknown: opts.allowUnknown !== false,
+			data:         opts.data,
+			file:         opts.file,
+			schema:       opts.schema,
+			store:        opts.store
 		});
 
 		for (const layer of arrayify(opts.layers)) {

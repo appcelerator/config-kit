@@ -1,4 +1,4 @@
-import LayerList from '../dist/layer-list';
+import LayerList, { Base } from '../dist/layer-list';
 
 describe('LayerList', () => {
 	it('should remove a layer', () => {
@@ -50,13 +50,13 @@ describe('LayerList', () => {
 		for (const item of list) {
 			ids.push(item.id);
 		}
-		expect(ids).to.deep.equal([ 'a', 'b', 'c' ]);
+		expect(ids).to.deep.equal([ Base, 'a', 'b', 'c' ]);
 
 		ids = [];
 		for (const item of list.reverse) {
 			ids.push(item.id);
 		}
-		expect(ids).to.deep.equal([ 'c', 'b', 'a' ]);
+		expect(ids).to.deep.equal([ 'c', 'b', 'a', Base ]);
 	});
 
 	it('should error if validator is not a function', () => {
@@ -93,5 +93,18 @@ describe('LayerList', () => {
 		expect(() => {
 			list.unwatch('foo');
 		}).to.throw(TypeError, 'Expected handler to be a function');
+	});
+
+	it('should error adding a layer with invalid data', () => {
+		const list = new LayerList();
+		expect(() => {
+			list.add({ id: 'foo', data: 'bar' });
+		}).to.throw(TypeError, 'Expected layer data to be an object');
+	});
+
+	it('should render a layer to a string', () => {
+		const list = new LayerList();
+		const layer = list.add({ id: 'foo', data: { foo: 'bar' } });
+		expect(layer.toString()).to.equal('{"foo":"bar"}');
 	});
 });
