@@ -70,7 +70,7 @@ export default class LayerList {
 
 		this.layers.push(this.map[Base] = new Layer({
 			allowNulls: opts.allowNulls,
-			data:       opts.data || {},
+			data:       opts.data,
 			file:       opts.file,
 			id:         Base,
 			order:      -Infinity,
