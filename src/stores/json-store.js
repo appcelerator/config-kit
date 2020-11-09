@@ -88,7 +88,7 @@ export default class JSONStore extends Store {
 	get(key) {
 		let { data } = this;
 
-		if (key?.length) {
+		if (key) {
 			for (let i = 0, prop; data !== undefined && (prop = key[i++]); data = data[prop]) {
 				if (typeof data !== 'object') {
 					return;
@@ -111,7 +111,7 @@ export default class JSONStore extends Store {
 	has(key) {
 		let { data } = this;
 
-		if (key?.length) {
+		if (key) {
 			for (let i = 0, prop; data !== undefined && (prop = key[i++]); data = data[prop]) {
 				if (typeof data !== 'object') {
 					return false;
@@ -125,11 +125,14 @@ export default class JSONStore extends Store {
 	/**
 	 * Loads a config file.
 	 *
-	 * @param {String} file - The path to the config file to load.
+	 * @param {Object} opts - Various options
+	 * @param {String} opts.file - The path to the config file to load.
+	 * @param {String} [opts.ns] - A namespace to wrap around the loaded data.
+	 * @param {Function} [opts.validate] - A function to validate the data against a schema.
 	 * @returns {JSONStore}
 	 * @access public
 	 */
-	load(file) {
+	load({ file, ns, validate }) {
 		if (!fs.existsSync(file)) {
 			const err = new Error(`File not found: ${file}`);
 			err.code = 'ENOENT';
@@ -156,6 +159,14 @@ export default class JSONStore extends Store {
 
 		if (!data || typeof data !== 'object') {
 			throw new TypeError('Expected config file to be an object');
+		}
+
+		if (ns && !Object.prototype.hasOwnProperty.call(data, ns)) {
+			data = { [ns]: data };
+		}
+
+		if (typeof validate === 'function') {
+			data = validate(data);
 		}
 
 		Node.merge(this.data, data);
