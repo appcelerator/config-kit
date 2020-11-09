@@ -1,4 +1,4 @@
-import Joi from '@hapi/joi';
+import Joi from 'joi';
 import snooplogg from 'snooplogg';
 
 /**
@@ -71,7 +71,7 @@ export function getSchemaInitialValues(schema) {
 		}
 	}
 
-	return { defaults, env };
+	return { defaults, env: Object.keys(env).length ? env : null };
 }
 
 /**

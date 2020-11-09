@@ -1,11 +1,11 @@
 import fs from 'fs-extra';
 import importFresh from 'import-fresh';
-import Joi from '@hapi/joi';
+import Joi from 'joi';
 import JSONStore from './stores/json-store';
 import path from 'path';
 import snooplogg from 'snooplogg';
 import Store from './store';
-import Values from '@hapi/joi/lib/values';
+import Values from 'joi/lib/values';
 import { getSchemaInitialValues, validate } from './util';
 
 const { log } = snooplogg('config-kit')('js-store');
@@ -137,8 +137,15 @@ export default class Layer {
 			this.store = new JSONStore(opts.store || { data: defaults, schema: this.schema });
 		}
 
-		if (opts.data) {
-			this.store.merge(opts.data);
+		let { data } = opts;
+		if (data) {
+			if (typeof data !== 'object') {
+				throw new TypeError('Expected layer data to be an object');
+			}
+
+			if (data && typeof data === 'object') {
+				this.merge(this.namespace ? { [this.namespace]: data } : data);
+			}
 		}
 
 		if (opts.file) {
@@ -146,6 +153,8 @@ export default class Layer {
 		}
 
 		if (env) {
+			// we can merge the environment variable values directly into the store since we've
+			// already done the validation in `getSchemaInitialValues()`
 			this.store.merge(env);
 		}
 	}
@@ -154,7 +163,7 @@ export default class Layer {
 	 * Sets a value for the specified key.
 	 *
 	 * @param {Array.<String>} key - The key to set.
-	 * @returns {Layer}
+	 * @returns {Boolean}
 	 */
 	delete(key) {
 		if (this.readonly) {
@@ -166,7 +175,11 @@ export default class Layer {
 		}
 
 		this.validate({ action: 'delete', key });
-		return this.store.delete(key);
+		if (key = this.resolveKey(key)) {
+			return this.store.delete(key);
+		}
+
+		return false;
 	}
 
 	/**
@@ -178,7 +191,19 @@ export default class Layer {
 	 * @access public
 	 */
 	get(key) {
-		return this.store && this.store.get(key);
+		const nsKey = this.resolveKey(key);
+		if (nsKey !== null) {
+			let value = this.store.get(nsKey);
+			if (!nsKey?.length && value === undefined) {
+				// set to empty object if value
+				value = {};
+			}
+			if (key.length && this.namespace && key[0] === this.namespace) {
+				// return a specific value
+				return value;
+			}
+			return this.namespace ? { [this.namespace]: value } : value;
+		}
 	}
 
 	/**
@@ -189,7 +214,14 @@ export default class Layer {
 	 * @access public
 	 */
 	has(key) {
-		return this.store.has(key);
+		const nsKey = this.resolveKey(key);
+		if (nsKey !== null) {
+			if (key.length === 1 && this.namespace && key[0] === this.namespace) {
+				return true;
+			}
+			return this.store.has(nsKey);
+		}
+		return false;
 	}
 
 	/**
@@ -214,10 +246,12 @@ export default class Layer {
 		}
 
 		if (!graceful || exists) {
-			this.store.load({
-				file,
-				ns: this.namespace,
-				validate: value => this.validate({ action: 'load', message: 'Failed to load config file', value })
+			this.store.load(file);
+			const data = this.store.get();
+			this.validate({
+				action: 'load',
+				message: 'Failed to load config file',
+				value: this.namespace ? { [this.namespace]: data } : data
 			});
 		}
 
@@ -319,8 +353,10 @@ export default class Layer {
 
 		this.schema = schema;
 
+		// when loadSchema() is called from the constructor, `this.store` will not have been set
+		// yet, so this is really for the public API
 		if (this.store) {
-			this.store.schema = schema;
+			this.store.schema = this.namespace && schema.$_terms.keys?.find(s => s.key === this.namespace)?.schema || schema;
 		}
 
 		return this;
@@ -337,9 +373,26 @@ export default class Layer {
 		if (this.readonly) {
 			throw new Error(`Layer "${String(this.id)}" is readonly`);
 		}
-		this.validate({ value, action: 'merge' });
-		this.store.merge(value);
+		this.validate({ action: 'merge', value });
+		if ((!this.namespace || (value = value[this.namespace])) && typeof value === 'object') {
+			this.store.merge(value);
+		}
 		return this;
+	}
+
+	/**
+	 * Checks if this layer has a namespaces and if the key has the namespace, then returns the
+	 * resolved key.
+	 *
+	 * @param {Array.<String>} key - The key to resolve.
+	 * @returns {Array.<String>}
+	 * @access private
+	 */
+	resolveKey(key) {
+		if (key.length && this.namespace) {
+			return key[0] === this.namespace ? key.slice(1) : null;
+		}
+		return key;
 	}
 
 	/**
@@ -373,7 +426,10 @@ export default class Layer {
 		}
 
 		this.validate({ action, key, value });
-		this.store.set(key, value);
+		if (key = this.resolveKey(key)) {
+			this.store.set(key, value);
+		}
+
 		return this;
 	}
 
@@ -424,11 +480,10 @@ export default class Layer {
 	 * @type {Function}
 	 */
 	get validate() {
-		return args => {
-			return typeof this.validator === 'function'
-				? this.validator(args)
-				: validate({ schemas: [ this.schema ], ...args });
-		};
+		return args => (this.validator || validate)({
+			schemas: this.schema ? [ this.schema ] : [],
+			...args
+		});
 	}
 
 	set validate(fn) {
