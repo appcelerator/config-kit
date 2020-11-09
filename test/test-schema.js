@@ -100,6 +100,13 @@ describe('Schema', () => {
 			namespace: 'test',
 			schema: path.join(__dirname, 'fixtures', 'schema', 'good.json')
 		});
+
+		expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
+		cfg.merge({ baz: 'wiz' });
+		expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
+
+		cfg.merge({ test: { baz: 'wiz' } });
+		expect(cfg.get()).to.deep.equal({ test: { foo: 'bar', baz: 'wiz' } });
 	});
 
 	it('should error manually loading schema', () => {
@@ -201,7 +208,7 @@ describe('Schema', () => {
 		expect(cfg.get('b')).to.equal(12);
 		expect(() => {
 			cfg.set('b', 1);
-		}).to.throw(Error, 'Failed to set config value: "value" must be larger than or equal to 10');
+		}).to.throw(Error, 'Failed to set config value: "value" must be greater than or equal to 10');
 		expect(() => {
 			cfg.set('b', 21);
 		}).to.throw(Error, 'Failed to set config value: "value" must be less than or equal to 20');
@@ -252,7 +259,7 @@ describe('Schema', () => {
 				c: Joi.alternatives()
 					.try(
 						Joi.object({
-							d: Joi.object().meta({ readonly: true })
+							d: Joi.string().meta({ readonly: true })
 						}),
 						Joi.number()
 					),

@@ -61,13 +61,10 @@ export default class Store {
 	/**
 	 * Loads a config file.
 	 *
-	 * @param {Object} opts - Various options
-	 * @param {String} opts.file - The path to the config file to load.
-	 * @param {String} [opts.ns] - A namespace to wrap around the loaded data.
-	 * @param {Function} [opts.validate] - A function to validate the data against a schema.
+	 * @param {String} file - The path to the config file to load.
 	 * @access public
 	 */
-	load(opts) {
+	load(file) {
 		throw new Error('load() not implemented');
 	}
 

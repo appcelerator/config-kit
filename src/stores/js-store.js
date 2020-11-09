@@ -20,14 +20,11 @@ export default class JSStore extends JSONStore {
 	/**
 	 * Loads a config file.
 	 *
-	 * @param {Object} opts - Various options
-	 * @param {String} opts.file - The path to the config file to load.
-	 * @param {String} [opts.ns] - A namespace to wrap around the loaded data.
-	 * @param {Function} [opts.validate] - A function to validate the data against a schema.
+	 * @param {String} file - The path to the config file to load.
 	 * @returns {JSONStore}
 	 * @access public
 	 */
-	load({ file, ns, validate }) {
+	load(file) {
 		if (!fs.existsSync(file)) {
 			const err = Error(`File not found: ${file}`);
 			err.code = 'ENOENT';
@@ -48,14 +45,6 @@ export default class JSStore extends JSONStore {
 
 		if (!data || typeof data !== 'object') {
 			throw new TypeError('Expected config file to be an object');
-		}
-
-		if (ns && !Object.prototype.hasOwnProperty.call(data, ns)) {
-			data = { [ns]: data };
-		}
-
-		if (typeof validate === 'function') {
-			validate(data);
 		}
 
 		this.data = new Node(data);
