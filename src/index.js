@@ -4,7 +4,7 @@ if (!Error.prepareStackTrace) {
 }
 
 import Config from './config';
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import JSStore from './stores/js-store';
 import JSONStore from './stores/json-store';
 import Layer from './layer';

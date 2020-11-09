@@ -12,12 +12,6 @@ const { highlight } = snooplogg.styles;
 export const All = Symbol('all');
 
 /**
- * The id for the base layer.
- * @type {Symbol}
- */
-export const Base = Symbol('base');
-
-/**
  * An indexed list of elements.
  */
 export default class LayerList {
@@ -57,35 +51,11 @@ export default class LayerList {
 	 * @param {Object} [opts] - Various options.
 	 * @param {Boolean} [opts.allowNulls] - Forces all nodes of a schema to allow nulls.
 	 * @param {Boolean} [opts.allowUnknown=true] - Allows object values to contain unknown keys.
-	 * @param {Object} [opts.data] - Datwa to initialize the base config layer with.
-	 * @param {String} [opts.file] - The file to associate with the base layer.
-	 * @param {Object} [opts.schema] - A Joi schema for the base layer.
-	 * @param {Store|Function} [opts.store] - A store instance or store class to use for the base
-	 * layer.
 	 * @access public
 	 */
 	constructor(opts = {}) {
 		this.allowNulls = opts.allowNulls;
 		this.allowUnknown = opts.allowUnknown !== false;
-
-		this.layers.push(this.map[Base] = new Layer({
-			allowNulls: opts.allowNulls,
-			data:       opts.data,
-			file:       opts.file,
-			id:         Base,
-			order:      -Infinity,
-			readonly:   false,
-			schema:     opts.schema,
-			static:     true,
-			store:      opts.store,
-			validate:   args => validate({
-				...args,
-				validateOptions: {
-					allowUnknown: this.allowUnknown,
-					...args.validateOptions
-				}
-			})
-		}));
 	}
 
 	/**
@@ -108,13 +78,11 @@ export default class LayerList {
 			throw new TypeError('Expected layer to be an object');
 		}
 
-		const { id } = layer;
-
-		if (!id) {
+		if (!layer.id) {
 			throw new Error('Expected layer to have an id');
 		}
 
-		const existing = this.map[id];
+		const existing = this.map[layer.id];
 		if (existing) {
 			for (const prop of [ 'namespace', 'order', 'readonly', 'schema', 'static' ]) {
 				if (!Object.prototype.hasOwnProperty.call(layer, prop)) {
@@ -125,41 +93,27 @@ export default class LayerList {
 
 		const isLayer = layer instanceof Layer;
 		if (isLayer || !layer.validate) {
-			layer.validate = args => {
-				const schemas = new Set();
-				const base = this.layers.find(layer => layer.id === Base)?.schema;
-				if (base) {
-					schemas.add(base);
+			layer.validate = args => validate({
+				...args,
+				schemas: this.layers.map(layer => layer.schema),
+				validateOptions: {
+					allowUnknown: this.allowUnknown
 				}
-				if (args.schemas) {
-					for (const schema of args.schemas) {
-						schemas.add(schema);
-					}
-				}
-
-				return validate({
-					...args,
-					schemas: Array.from(schemas),
-					validateOptions: {
-						allowUnknown: this.allowUnknown
-					}
-				});
-			};
+			});
 		}
 
 		layer.allowNulls = this.allowNulls;
 
 		if (!isLayer) {
-			log(`Creating new layer: ${highlight(String(id))}`);
+			log(`Creating new layer: ${highlight(String(layer.id))}`);
 			layer = new Layer(layer);
 		} else if (existing && Object.prototype.hasOwnProperty.call(existing, 'file')) {
 			layer.file = existing.file;
 		}
 
-		this.map[id] = layer;
-
+		this.map[layer.id] = layer;
 		if (existing) {
-			const p = this.layers.findIndex(existing => existing.id === id);
+			const p = this.layers.findIndex(existing => existing.id === layer.id);
 			if (p !== -1) {
 				this.layers.splice(p, 1);
 			}
@@ -167,7 +121,7 @@ export default class LayerList {
 
 		let inserted;
 		for (let i = this.layers.length - 1; i >= 0; i--) {
-			if (layer.order >= this.layers[i].order) {
+			if (layer.order > this.layers[i].order) {
 				inserted = !!this.layers.splice(i + 1, 0, layer);
 				break;
 			}

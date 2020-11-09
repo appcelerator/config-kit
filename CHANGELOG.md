@@ -1,25 +1,3 @@
-# v1.3.0
-
- * fix(Layer): Move layer namespace handling from store to layer.
- * fix(Layer): Allow `has()` to be passed an empty key.
- * fix(Layer): Added schema validation when initializing a layer with data.
- * fix(LayerList): Moved `Base` layer definition from `Config` into `LayerList` because the layer
-   schema validator needs the base layer's schema and we need to make sure the base layer exists
-   and thus needs to own the `Base` symbol.
- * fix(LayerList): Validator should only use base layer's schema and current layer's schema to
-   validate, not all layer's schemas.
- * fix(LayerList): Fixed bug where layers were not being inserted into the layer list sequentially.
- * fix(JSONStore): Fixed `get()` and `has()` to only iterate over the data object if the `key` has
-   a length.
- * fix(util): In `getSchemaInitialValues()`, only return `env` object if there were environment
-   variable values found.
- * refactor(Store): Changed `Store.load()` to only take a `file`. Not counting this as a breaking
-   change as it's an internal API.
- * build: Update Babel config from Node 8 to Node 10.
- * test: Added several namespace related tests.
- * test: Fixed several bad tests.
- * chore: Migrated from `@hapi/joi` to `joi`.
-
 # v1.2.1 (Jul 3, 2020)
 
  * fix(config): Fixed duplicate watch events when deleting across multiple layers.
