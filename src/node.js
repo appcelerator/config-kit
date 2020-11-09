@@ -1,7 +1,8 @@
 import { hashValue } from './util';
 
 /**
- * A node in the config tree that represents the union of a XML node and a schema node.
+ * A node is value in an object. It wraps a the value in a proxy so that we can listen for when the
+ * node is changed. We can also store arbitrary data in the node's metadata.
  */
 export default class Node {
 	/**
@@ -19,6 +20,7 @@ export default class Node {
 	 */
 	constructor(value, parent) {
 		const internal = {
+			cls:       Object.getPrototypeOf(this).constructor,
 			hash:      null,
 			hashes:    null,
 			listeners: null,
@@ -98,7 +100,7 @@ export default class Node {
 
 					if (node[key] && typeof node[key] === 'object') {
 						if (!node[key]?.[Node.Meta]) {
-							node[key] = new Node(node[key], node);
+							node[key] = new node[Node.Meta].cls(node[key], node);
 						}
 						this.hashes[key] = node[key][Node.Meta].hash;
 					} else {
@@ -286,7 +288,7 @@ export default class Node {
 					if (value[Node.Meta]) {
 						value[Node.Meta].parents.add(node);
 					} else {
-						value = new Node(value, node);
+						value = new node[Node.Meta].cls(value, node);
 					}
 					({ hash } = value[Node.Meta]);
 				} else {

@@ -1,5 +1,7 @@
 /* eslint no-unused-vars: 0 */
 
+import Joi from 'joi';
+
 /**
  * A base class for all store implemntations.
  */
@@ -9,6 +11,13 @@ export default class Store {
 	 * @type {String}
 	 */
 	static extension = null;
+
+	/**
+	 * A Joi schema. The `Layer` will pass in the schema into the `schema` setter during
+	 * construction or when the schema is loaded.
+	 * @type {Object}
+	 */
+	_schema = null;
 
 	/**
 	 * Initializes the store.
@@ -86,6 +95,22 @@ export default class Store {
 	 */
 	save(file) {
 		throw new Error('save() not implemented');
+	}
+
+	/**
+	 * A Joi schema object.
+	 * @type {Object}
+	 * @access public
+	 */
+	get schema() {
+		return this._schema;
+	}
+
+	set schema(newSchema) {
+		if (newSchema && (!Joi.isSchema(newSchema) || newSchema.type !== 'object')) {
+			throw new TypeError('Expected schema root to be an object');
+		}
+		this._schema = newSchema;
 	}
 
 	/**

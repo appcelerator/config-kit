@@ -1,5 +1,10 @@
-# v1.3.0
+# v1.3.0 (Nov 9, 2020)
 
+ * feat(Store): Added `schema` getter and setter.
+ * feat(Node): Add node class reference to internal metadata for instantiating child nodes. Useful
+   if a store wants to use an extended `Node` class.
+ * refactor(Store): Changed `Store.load()` to only take a `file`. Not counting this as a breaking
+   change as it's an internal API.
  * fix(Layer): Move layer namespace handling from store to layer.
  * fix(Layer): Allow `has()` to be passed an empty key.
  * fix(Layer): Added schema validation when initializing a layer with data.
@@ -13,8 +18,6 @@
    a length.
  * fix(util): In `getSchemaInitialValues()`, only return `env` object if there were environment
    variable values found.
- * refactor(Store): Changed `Store.load()` to only take a `file`. Not counting this as a breaking
-   change as it's an internal API.
  * build: Update Babel config from Node 8 to Node 10.
  * test: Added several namespace related tests.
  * test: Fixed several bad tests.

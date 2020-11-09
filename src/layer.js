@@ -353,8 +353,9 @@ export default class Layer {
 
 		this.schema = schema;
 
+		// when loadSchema() is called from the constructor, `this.store` will not have been set
+		// yet, so this is really for the public API
 		if (this.store) {
-			// we force set the schema in the store
 			this.store.schema = this.namespace && schema.$_terms.keys?.find(s => s.key === this.namespace)?.schema || schema;
 		}
 
