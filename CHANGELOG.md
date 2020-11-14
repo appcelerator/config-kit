@@ -1,3 +1,8 @@
+# v1.3.1 (Nov 14, 2020)
+
+ * fix(Node): Initialize node to empty object, then manually merge source object using setter to
+   avoid mutating original object and properly calculate the hashes.
+
 # v1.3.0 (Nov 9, 2020)
 
  * feat(Store): Added `schema` getter and setter.

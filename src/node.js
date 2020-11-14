@@ -81,12 +81,8 @@ export default class Node {
 			/**
 			 * Recomputes the hash lookup for all properties, then recomputes this object's hash.
 			 * If any properties are not already Nodes, then create them.
-			 *
-			 * @param {Boolean} [isCtor=false] - Indicates the rehash is being called by the
-			 * constructor in which case we do not want to notify parents since the parent is
-			 * likely what created this instance in the first place.
 			 */
-			rehash(isCtor) {
+			rehash() {
 				const isArray = Array.isArray(node);
 				const keys = Reflect.ownKeys(node);
 				const { hash } = this;
@@ -110,7 +106,7 @@ export default class Node {
 
 				this.hash = hashValue(this.hashes);
 
-				if (!isCtor && hash !== this.hash) {
+				if (hash !== this.hash) {
 					for (const parent of this.parents) {
 						parent[Node.Meta].rehash();
 					}
@@ -206,7 +202,9 @@ export default class Node {
 			}
 		};
 
-		const node = new Proxy(value, {
+		const isArray = Array.isArray(value);
+
+		const node = new Proxy(isArray ? [] : {}, {
 			deleteProperty(target, prop) {
 				let result = true;
 
@@ -330,6 +328,17 @@ export default class Node {
 
 		Object.defineProperty(node, Node.Meta, { value: internal });
 
+		if (value && typeof value === 'object') {
+			internal.hashes = isArray ? [] : {};
+			internal.hash = hashValue(internal.hashes);
+			for (const key of Reflect.ownKeys(value)) {
+				if (key === Node.Meta || (isArray && key === 'length')) {
+					continue;
+				}
+				node[key] = value[key];
+			}
+		}
+
 		if (parent !== undefined) {
 			if (!parent?.[Node.Meta]) {
 				throw new TypeError('Expected parent to be a Node');
@@ -340,10 +349,6 @@ export default class Node {
 			}
 
 			internal.parents.add(parent);
-		}
-
-		if (value && typeof value === 'object') {
-			internal.rehash(true);
 		}
 
 		return node;
