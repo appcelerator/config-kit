@@ -28,6 +28,40 @@ describe('Namespaces', () => {
 				expect(cfg.get('foo')).to.equal(undefined);
 				expect(cfg.get('test')).to.deep.equal({ foo: 'bar' });
 				expect(cfg.get('test.foo')).to.equal('bar');
+
+				expect(cfg.has('test.foo')).to.equal(true);
+				expect(cfg.has('test.bar')).to.equal(false);
+
+				cfg.set('test.baz', 'wiz');
+				expect(cfg.get('test')).to.deep.equal({ foo: 'bar', baz: 'wiz' });
+
+				expect(cfg.delete('test.foo')).to.equal(true);
+				expect(cfg.get('test')).to.deep.equal({ baz: 'wiz' });
+
+				expect(cfg.delete('test.foo')).to.equal(false);
+				expect(cfg.get('test')).to.deep.equal({ baz: 'wiz' });
+			});
+
+			it('should load a file that is already namespaced into a namespaced layer', () => {
+				const cfg = new Config();
+				cfg.load(path.join(__dirname, 'fixtures', 'json', 'good-ns.json'), { namespace: 'test' });
+
+				expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
+				expect(cfg.get('foo')).to.equal(undefined);
+				expect(cfg.get('test')).to.deep.equal({ foo: 'bar' });
+				expect(cfg.get('test.foo')).to.equal('bar');
+
+				expect(cfg.has('test.foo')).to.equal(true);
+				expect(cfg.has('test.bar')).to.equal(false);
+
+				cfg.set('test.baz', 'wiz');
+				expect(cfg.get('test')).to.deep.equal({ foo: 'bar', baz: 'wiz' });
+
+				expect(cfg.delete('test.foo')).to.equal(true);
+				expect(cfg.get('test')).to.deep.equal({ baz: 'wiz' });
+
+				expect(cfg.delete('test.foo')).to.equal(false);
+				expect(cfg.get('test')).to.deep.equal({ baz: 'wiz' });
 			});
 		});
 

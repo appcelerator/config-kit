@@ -1,3 +1,8 @@
+# v1.4.0 (Nov 18, 2020)
+
+ * feat(store): Added `keys()` method.
+ * fix(layer): Account for namespaced layers to be able to load already namespaced data.
+
 # v1.3.1 (Nov 14, 2020)
 
  * fix(Node): Initialize node to empty object, then manually merge source object using setter to

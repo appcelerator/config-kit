@@ -176,7 +176,13 @@ export default class Layer {
 
 		this.validate({ action: 'delete', key });
 		if (key = this.resolveKey(key)) {
-			return this.store.delete(key);
+			const keys = this.namespace && this.store.keys();
+			if (keys && keys.length === 1 && keys[0] === this.namespace) {
+				// data is namespaced, so we need to add the namespace back
+				return this.store.delete([ this.namespace, ...key ]);
+			} else {
+				return this.store.delete(key);
+			}
 		}
 
 		return false;
@@ -191,19 +197,30 @@ export default class Layer {
 	 * @access public
 	 */
 	get(key) {
-		const nsKey = this.resolveKey(key);
-		if (nsKey !== null) {
-			let value = this.store.get(nsKey);
-			if (!nsKey?.length && value === undefined) {
-				// set to empty object if value
-				value = {};
-			}
-			if (key.length && this.namespace && key[0] === this.namespace) {
-				// return a specific value
-				return value;
-			}
-			return this.namespace ? { [this.namespace]: value } : value;
+		let nsKey = this.resolveKey(key);
+		if (nsKey === null) {
+			return;
 		}
+
+		const keys = this.namespace && this.store.keys();
+		let value;
+		if (keys && keys.length === 1 && keys[0] === this.namespace) {
+			// data is namespaced, so we need to add the namespace back
+			value = this.store.get([ this.namespace, ...nsKey ]);
+		} else {
+			value = this.store.get(nsKey);
+		}
+
+		if (!nsKey?.length && value === undefined) {
+			// set to empty object if value
+			value = {};
+		}
+
+		if (key.length && this.namespace && key[0] === this.namespace) {
+			return value;
+		}
+
+		return this.namespace ? { [this.namespace]: value } : value;
 	}
 
 	/**
@@ -215,13 +232,17 @@ export default class Layer {
 	 */
 	has(key) {
 		const nsKey = this.resolveKey(key);
-		if (nsKey !== null) {
-			if (key.length === 1 && this.namespace && key[0] === this.namespace) {
-				return true;
-			}
-			return this.store.has(nsKey);
+		if (nsKey === null) {
+			return false;
 		}
-		return false;
+
+		const keys = this.namespace && this.store.keys();
+		if (keys && keys.length === 1 && keys[0] === this.namespace) {
+			// data is namespaced, so we need to add the namespace back
+			return this.store.has([ this.namespace, ...nsKey ]);
+		}
+
+		return this.store.has(nsKey);
 	}
 
 	/**
@@ -427,7 +448,13 @@ export default class Layer {
 
 		this.validate({ action, key, value });
 		if (key = this.resolveKey(key)) {
-			this.store.set(key, value);
+			const keys = this.namespace && this.store.keys();
+			if (keys && keys.length === 1 && keys[0] === this.namespace) {
+				// data is namespaced, so we need to add the namespace back
+				this.store.set([ this.namespace, ...key ], value);
+			} else {
+				this.store.set(key, value);
+			}
 		}
 
 		return this;
