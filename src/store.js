@@ -70,7 +70,6 @@ export default class Store {
 	/**
 	 * Returns an array of the names of the keys defined on the object.
 	 *
-	 * @returns {Array.<String>}
 	 * @access public
 	 */
 	keys() {

@@ -1,3 +1,7 @@
+# v1.4.1 (Nov 30, 2020)
+
+ * chore: Updated dependencies.
+
 # v1.4.0 (Nov 18, 2020)
 
  * feat(store): Added `keys()` method.
