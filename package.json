@@ -1,6 +1,6 @@
 {
   "name": "config-kit",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "A universal, layered configuration system.",
   "main": "./dist/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "fs-extra": "^9.0.1",
-    "import-fresh": "^3.2.2",
+    "import-fresh": "^3.3.0",
     "joi": "^17.3.0",
-    "snooplogg": "^3.0.1",
+    "snooplogg": "^3.0.2",
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
-    "appcd-gulp": "^3.1.0",
+    "appcd-gulp": "^3.1.1",
     "tmp": "^0.2.1"
   },
   "homepage": "https://github.com/appcelerator/config-kit",
