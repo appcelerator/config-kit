@@ -19,8 +19,9 @@ export default class Node {
 	 * @access public
 	 */
 	constructor(value, parent) {
+		const cls = Object.getPrototypeOf(this).constructor;
 		const internal = {
-			cls:       Object.getPrototypeOf(this).constructor,
+			cls,
 			hash:      null,
 			hashes:    null,
 			listeners: null,
@@ -96,7 +97,7 @@ export default class Node {
 
 					if (node[key] && typeof node[key] === 'object') {
 						if (!node[key]?.[Node.Meta]) {
-							node[key] = new node[Node.Meta].cls(node[key], node);
+							node[key] = new cls(node[key], node);
 						}
 						this.hashes[key] = node[key][Node.Meta].hash;
 					} else {
@@ -286,7 +287,7 @@ export default class Node {
 					if (value[Node.Meta]) {
 						value[Node.Meta].parents.add(node);
 					} else {
-						value = new node[Node.Meta].cls(value, node);
+						value = new cls(value, node);
 					}
 					({ hash } = value[Node.Meta]);
 				} else {
@@ -310,6 +311,10 @@ export default class Node {
 				}
 
 				target[prop] = value;
+
+				if (typeof cls.onSet === 'function') {
+					cls.onSet({ internal, node, prop, target, value });
+				}
 
 				internal.hashes[prop] = hash;
 				internal.hash = hashValue(internal.hashes);

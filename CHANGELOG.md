@@ -1,3 +1,8 @@
+# v1.5.0
+
+ * feat: Added support for `Node.onSet()` callback.
+ * chore: Updated dependencies.
+
 # v1.4.3 (Jan 5, 2021)
 
 * chore: Updated dependencies.
