@@ -333,6 +333,7 @@ export default class Node {
 
 		Object.defineProperty(node, Node.Meta, { value: internal });
 
+		// if value is an object, we copy the value into this node instance
 		if (value && typeof value === 'object') {
 			internal.hashes = isArray ? [] : {};
 			internal.hash = hashValue(internal.hashes);
