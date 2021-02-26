@@ -1,3 +1,8 @@
+# v1.6.0
+
+ * feat: Added `.xml` store without schemas support.
+ * chore: Updated dependencies.
+
 # v1.5.0 (Feb 3, 2021)
 
  * feat: Added support for `Node.onSet()` callback.

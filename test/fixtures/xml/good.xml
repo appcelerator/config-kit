@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<awesome>
+	<string-test>foo</string-test>
+	<number-test>123</number-test>
+	<bool-true-test>true</bool-true-test>
+	<bool-false-test>false</bool-false-test>
+	<array-test>
+		<item>123</item>
+		<item>abc</item>
+		<pi>3.14</pi>
+	</array-test>
+</awesome>
