@@ -7,6 +7,7 @@ import path from 'path';
 import snooplogg from 'snooplogg';
 import Store from './store';
 import StoreRegistry from './store-registry';
+import XMLStore from './stores/xml-store';
 import { arrayify, hashValue, splitKey, unique } from './util';
 
 const { log } = snooplogg('config-kit')('config');
@@ -108,6 +109,7 @@ export default class Config {
 
 		this.stores.add(JSStore);
 		this.stores.add(JSONStore);
+		this.stores.add(XMLStore);
 		for (const store of arrayify(opts.stores)) {
 			this.stores.add(store);
 		}

@@ -11,6 +11,7 @@
 
  * Layered data architecture
  * Schema validation using [joi]
+ * Support for `.json`, `.js`, and `.xml` data stores
  * Default values
  * Environment variable precedence
  * Define custom layers

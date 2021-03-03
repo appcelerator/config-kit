@@ -7,6 +7,7 @@ import Config from './config';
 import Joi from 'joi';
 import JSStore from './stores/js-store';
 import JSONStore from './stores/json-store';
+import XMLStore from './stores/xml-store';
 import Layer from './layer';
 import Node from './node';
 import Store from './store';
@@ -17,6 +18,7 @@ export {
 	Joi,
 	JSStore,
 	JSONStore,
+	XMLStore,
 	Layer,
 	Node,
 	Store

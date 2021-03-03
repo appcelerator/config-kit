@@ -1,5 +1,6 @@
 {
     "rules": {
+        "max-depth": "off",
         "security/detect-possible-timing-attacks": "off"
     }
 }
