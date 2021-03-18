@@ -1,3 +1,7 @@
+# v1.6.1 (Mar 18, 2021)
+
+ * chore: Updated dependencies.
+
 # v1.6.0 (Mar 3, 2021)
 
  * feat: Added `.xml` store without schemas support.
