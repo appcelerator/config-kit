@@ -1,3 +1,8 @@
+# v1.6.2 (Apr 21, 2021)
+
+ * fix(set): `set()` should return `Config` instance, not `undefined`.
+ * chore: Updated dependencies.
+
 # v1.6.1 (Mar 18, 2021)
 
  * chore: Updated dependencies.

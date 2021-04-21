@@ -582,7 +582,8 @@ export default class Config {
 	 * @access public
 	 */
 	set(key, value, id) {
-		return this._mutate({ id, key, action: 'set', value });
+		this._mutate({ id, key, action: 'set', value });
+		return this;
 	}
 
 	/**
