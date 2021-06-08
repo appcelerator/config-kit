@@ -3,6 +3,7 @@ import Node from '../node';
 import path from 'path';
 import snooplogg from 'snooplogg';
 import Store from '../store';
+import { moveSync, writeFileSync } from '../fsutil';
 
 const { log } = snooplogg('config-kit')('json-store');
 const { highlight } = snooplogg.styles;
@@ -203,8 +204,8 @@ export default class JSONStore extends Store {
 		}
 
 		const tmpFile = `${file}.${Date.now()}.tmp`;
-		fs.outputJsonSync(tmpFile, this.data, { spaces: 2 });
-		fs.moveSync(tmpFile, file, { overwrite: true });
+		writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), { applyOwner: this.applyOwner });
+		moveSync(tmpFile, file, { applyOwner: this.applyOwner });
 		log(`Wrote config file: ${highlight(file)}`);
 
 		return this;

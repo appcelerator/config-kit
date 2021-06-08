@@ -23,6 +23,8 @@ export default class Store {
 	 * Initializes the store.
 	 *
 	 * @param {Object} [opts] - Various options.
+	 * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
+	 * existing parent directory and apply the owner to the file and any newly created directories.
 	 * @param {String} [opts.file] - The file backing this layer's store.
 	 * @access public
 	 */
@@ -34,6 +36,8 @@ export default class Store {
 		if (!opts || typeof opts !== 'object') {
 			throw new TypeError('Expected store options to be an object');
 		}
+
+		this.applyOwner = opts.applyOwner !== false;
 	}
 
 	/**

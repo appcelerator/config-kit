@@ -1,3 +1,9 @@
+# v1.7.0 (Jun 8, 2021)
+
+ * feat: Added `applyOwner` flag with default of `true` which sets the owner of the metadata file
+   to the owner of closest existing parent directory to protect against commands run as sudo.
+ * chore: Updated dependencies.
+
 # v1.6.2 (Apr 21, 2021)
 
  * fix(set): `set()` should return `Config` instance, not `undefined`.

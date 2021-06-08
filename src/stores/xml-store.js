@@ -6,6 +6,7 @@ import Store from '../store';
 import XNode from './xml/xnode';
 import { detectLineEndings, unescapeSequence } from './xml/util';
 import { DOMParser } from 'xmldom';
+import { moveSync, writeFileSync } from '../fsutil';
 
 const { log } = snooplogg('config-kit')('xml');
 const { highlight } = snooplogg.styles;
@@ -242,8 +243,8 @@ export default class XMLStore extends Store {
 		}
 
 		const tmpFile = `${file}.${Date.now()}.tmp`;
-		fs.writeFileSync(tmpFile, this.doc.toString());
-		fs.moveSync(tmpFile, file, { overwrite: true });
+		writeFileSync(tmpFile, this.doc.toString(), { applyOwner: this.applyOwner });
+		moveSync(tmpFile, file, { applyOwner: this.applyOwner });
 		log(`Wrote config file: ${highlight(file)}`);
 
 		return this;

@@ -80,6 +80,8 @@ export default class Config {
 	 * @param {Object} [opts] - Various options.
 	 * @param {Boolean} [opts.allowNulls] - Forces all nodes of a schema to allow nulls.
 	 * @param {Boolean} [opts.allowUnknown=true] - Allows object values to contain unknown keys.
+	 * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
+	 * existing parent directory and apply the owner to the file and any newly created directories.
 	 * @param {Object} [opts.data] - Data to initialize the base config layer with.
 	 * @param {String} [opts.file] - The file to associate with the base layer.
 	 * @param {Object|Layer|Array.<Object|Layer>} [opts.layers] - One or more layers to add in
@@ -126,6 +128,7 @@ export default class Config {
 		this.layers = new LayerList({
 			allowNulls:   opts.allowNulls,
 			allowUnknown: opts.allowUnknown !== false,
+			applyOwner:   opts.applyOwner !== false,
 			data:         opts.data,
 			file:         opts.file,
 			schema:       opts.schema,

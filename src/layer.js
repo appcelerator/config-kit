@@ -89,6 +89,8 @@ export default class Layer {
 	 *
 	 * @param {Object} [opts] - Various options.
 	 * @param {Boolean} [opts.allowNulls] - Forces all nodes of a schema to allow nulls.
+	 * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
+	 * existing parent directory and apply the owner to the file and any newly created directories.
 	 * @param {Object} [opts.data] - Data to initialize the base config layer with.
 	 * @param {String} [opts.file] - The file backing this layer's store.
 	 * @param {Boolean} [opts.graceful=true] - Try to load the file, but if it doesn't exist, then
@@ -132,9 +134,9 @@ export default class Layer {
 				this.store.schema = this.schema;
 			}
 		} else if (typeof opts.store === 'function') {
-			this.store = new opts.store({ data: defaults, schema: this.schema });
+			this.store = new opts.store({ applyOwner: opts.applyOwner, data: defaults, schema: this.schema });
 		} else {
-			this.store = new JSONStore(opts.store || { data: defaults, schema: this.schema });
+			this.store = new JSONStore(opts.store || { applyOwner: opts.applyOwner, data: defaults, schema: this.schema });
 		}
 
 		let { data } = opts;

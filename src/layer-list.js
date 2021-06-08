@@ -57,6 +57,8 @@ export default class LayerList {
 	 * @param {Object} [opts] - Various options.
 	 * @param {Boolean} [opts.allowNulls] - Forces all nodes of a schema to allow nulls.
 	 * @param {Boolean} [opts.allowUnknown=true] - Allows object values to contain unknown keys.
+	 * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
+	 * existing parent directory and apply the owner to the file and any newly created directories.
 	 * @param {Object} [opts.data] - Datwa to initialize the base config layer with.
 	 * @param {String} [opts.file] - The file to associate with the base layer.
 	 * @param {Object} [opts.schema] - A Joi schema for the base layer.
@@ -65,11 +67,13 @@ export default class LayerList {
 	 * @access public
 	 */
 	constructor(opts = {}) {
-		this.allowNulls = opts.allowNulls;
+		this.allowNulls   = opts.allowNulls;
 		this.allowUnknown = opts.allowUnknown !== false;
+		this.applyOwner   = opts.applyOwner !== false;
 
 		this.layers.push(this.map[Base] = new Layer({
 			allowNulls: opts.allowNulls,
+			applyOwner: opts.applyOwner,
 			data:       opts.data,
 			file:       opts.file,
 			id:         Base,
@@ -148,6 +152,9 @@ export default class LayerList {
 		}
 
 		layer.allowNulls = this.allowNulls;
+		if (!Object.prototype.hasOwnProperty.call(layer, 'applyOwner')) {
+			layer.applyOwner = this.applyOwner;
+		}
 
 		if (!isLayer) {
 			log(`Creating new layer: ${highlight(String(id))}`);

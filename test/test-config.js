@@ -128,13 +128,13 @@ describe('Config', () => {
 			cfg.save({ id: 'test' });
 
 			expect(fs.readdirSync(tmp)).to.have.lengthOf(1);
-			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "baz"\n}\n');
+			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "baz"\n}');
 
 			cfg.set('foo', 'bar', 'test');
 			cfg.save({ id: 'test' });
 
 			expect(fs.readdirSync(tmp)).to.have.lengthOf(1);
-			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "bar"\n}\n');
+			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "bar"\n}');
 		});
 
 		it('should save default layer with only a filename', () => {
@@ -146,7 +146,7 @@ describe('Config', () => {
 			cfg.save(file);
 
 			expect(fs.readdirSync(tmp)).to.have.lengthOf(1);
-			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "baz"\n}\n');
+			expect(fs.readFileSync(file, 'utf8')).to.equal('{\n  "foo": "baz"\n}');
 		});
 	});
 

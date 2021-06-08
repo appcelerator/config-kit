@@ -17,6 +17,7 @@
  * Define custom layers
  * Extensible data store interface
  * Support for array type values
+ * Apply parent directory owner when running as sudo
 
 ## Installation
 
