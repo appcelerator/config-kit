@@ -1,6 +1,6 @@
 {
   "name": "config-kit",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A universal, layered configuration system.",
   "main": "./dist/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
