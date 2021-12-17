@@ -1,3 +1,8 @@
+# v1.7.2 (Dec 17, 2021)
+
+ * chore: Switched from `xmldom` to `@xmldom/xmldom`.
+ * chore: Updated dependencies.
+
 # v1.7.1 (Jun 8, 2021)
 
  * fix: Writing a file with a mode was applying the mode to the file and newly created directories.

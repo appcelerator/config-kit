@@ -5,7 +5,7 @@ import snooplogg from 'snooplogg';
 import Store from '../store';
 import XNode from './xml/xnode';
 import { detectLineEndings, unescapeSequence } from './xml/util';
-import { DOMParser } from 'xmldom';
+import { DOMParser } from '@xmldom/xmldom';
 import { moveSync, writeFileSync } from '../fsutil';
 
 const { log } = snooplogg('config-kit')('xml');
