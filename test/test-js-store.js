@@ -1,5 +1,11 @@
-import Config, { JSStore } from '../dist/index';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import Config, { JSStore } from '../src/index.js';
 import path from 'path';
+
+chai.use(chaiAsPromised);
+
+const __dirname = path.dirname(new URL('', import.meta.url).pathname);
 
 describe('JSStore', () => {
 	describe('Constructor', () => {
@@ -20,67 +26,68 @@ describe('JSStore', () => {
 	});
 
 	describe('load()', () => {
-		it('should load a js file', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'));
+		it('should load a js file', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'));
 			expect(cfg.get('foo')).to.equal('bar');
 		});
 
-		it('should error if js file does not exist', () => {
-			const cfg = new Config();
+		it('should error if js file does not exist', async () => {
+			const cfg = await new Config().init();
 			const file = path.join(__dirname, 'does_not_exist.js');
-			expect(() => {
-				cfg.load(file);
-			}).to.throw(Error, `File not found: ${file}`);
+			await expect(
+				cfg.load(file)
+			).to.eventually.be.rejectedWith(Error, `File not found: ${file}`);
 		});
 
-		it('should error if js file is empty', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'empty.js'));
+		it('should not error if js file is empty', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'empty.js'));
 		});
 
-		it('should error if js file is bad', () => {
-			const cfg = new Config();
-			expect(() => {
-				cfg.load(path.join(__dirname, 'fixtures', 'js', 'bad-syntax.js'));
-			}).to.throw(Error, /Unexpected end of input/);
+		it('should error if js file is bad', async () => {
+			const cfg = await new Config().init();
+			await expect(
+				cfg.load(path.join(__dirname, 'fixtures', 'js', 'bad-syntax.js'))
+			).to.eventually.be.rejectedWith(Error, /Unexpected end of input/);
 		});
 
-		it('should error if config does\'t contain an object', () => {
-			const cfg = new Config();
-			expect(() => {
-				cfg.load(path.join(__dirname, 'fixtures', 'js', 'string.js'));
-			}).to.throw(TypeError, 'Expected config file to be an object');
+		it('should error if config does\'t contain an object', async () => {
+			const cfg = await new Config().init();
+			await expect(
+				cfg.load(path.join(__dirname, 'fixtures', 'js', 'string.js'))
+			).to.eventually.be.rejectedWith(TypeError, 'Expected config file to be an object');
 		});
 
-		it('should load a babel transpiled js file', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'transpiled.js'));
+		it('should load a js file that exports a function', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'good-fn.js'));
 			expect(cfg.get('foo')).to.equal('bar');
 		});
 
-		it('should load a babel transpiled js file with default export', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'transpiled-default.js'));
-			expect(cfg.get('foo')).to.equal('bar');
-		});
-
-		it('should load a js file that exports a function', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'good-fn.js'));
-			expect(cfg.get('foo')).to.equal('bar');
-		});
-
-		it('should load a layer into a namespace', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'), { namespace: 'baz' });
+		it('should load a layer into a namespace', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'), { namespace: 'baz' });
 			expect(cfg.get('baz.foo')).to.deep.equal('bar');
+		});
+
+		it('should load a esm js file with an import', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'import.js'));
+			expect(cfg.get('foo')).to.have.lengthOf(32);
+		});
+
+		it('should error if js file contains require()', async () => {
+			const cfg = await new Config().init();
+			await expect(
+				cfg.load(path.join(__dirname, 'fixtures', 'js', 'require.js'))
+			).to.eventually.be.rejectedWith(Error, /require is not defined/);
 		});
 	});
 
 	describe('get()', () => {
-		it('should get a undefined value', () => {
-			const cfg = new Config();
+		it('should get a undefined value', async () => {
+			const cfg = await new Config().init();
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore()
@@ -88,8 +95,8 @@ describe('JSStore', () => {
 			expect(cfg.get('foo', 'bar')).to.equal('bar');
 		});
 
-		it('should get the default value', () => {
-			const cfg = new Config();
+		it('should get the default value', async () => {
+			const cfg = await new Config().init();
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore()
@@ -97,8 +104,8 @@ describe('JSStore', () => {
 			expect(cfg.get('foo', 'bar')).to.equal('bar');
 		});
 
-		it('should initialize config and get value', () => {
-			const cfg = new Config({
+		it('should initialize config and get value', async () => {
+			const cfg = await new Config().init({
 				store: new JSStore({
 					data: {
 						foo: 'bar'
@@ -108,16 +115,16 @@ describe('JSStore', () => {
 			expect(cfg.get('foo')).to.equal('bar');
 		});
 
-		it('should error if key is invalid', () => {
+		it('should error if key is invalid', async () => {
+			const cfg = await new Config().init({ store: JSStore });
 			expect(() => {
-				const cfg = new Config({ store: JSStore });
 				cfg.get([ null ]);
 			}).to.throw(Error, 'Invalid key');
 		});
 
-		it('should get nested value', () => {
-			const cfg = new Config();
-			cfg.layers.set({
+		it('should get nested value', async () => {
+			const cfg = await new Config().init();
+			await cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore({
 					data: {
@@ -130,13 +137,13 @@ describe('JSStore', () => {
 			expect(cfg.get('foo.bar')).to.equal('baz');
 		});
 
-		it('should scan all layers when no specific id is specified', () => {
+		it('should scan all layers when no specific id is specified', async () => {
 			class Foo extends Config {
 				resolve() {}
 			}
 
-			const cfg = new Foo();
-			cfg.layers.add({
+			const cfg = await new Foo().init();
+			await cfg.layers.add({
 				id: 'Baz',
 				store: new JSStore({
 					data: {
@@ -148,39 +155,42 @@ describe('JSStore', () => {
 			expect(cfg.get('foo')).to.equal('bar');
 		});
 
-		it('should replace nested config values', () => {
-			const cfg = new Config();
-			cfg.layers.set({
+		it('should replace nested config values', async () => {
+			const cfg = await new Config().init();
+
+			await cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore()
 			});
 
-			cfg.set('appearance', 'good');
-			cfg.set('mood', 'great');
-			cfg.set('greeting', [ 'looking {{appearance}}', 'feeling {{mood}}' ]);
-			cfg.set('name', 'tester');
-			cfg.set('hi', 'hello {{name}}, {{greeting}}!');
+			await cfg.set('appearance', 'good');
+			await cfg.set('mood', 'great');
+			await cfg.set('greeting', [ 'looking {{appearance}}', 'feeling {{mood}}' ]);
+			await cfg.set('name', 'tester');
+			await cfg.set('hi', 'hello {{name}}, {{greeting}}!');
 
 			expect(cfg.get('hi')).to.equal('hello tester, looking good,feeling great!');
 		});
 
-		it('should error replacing non-existing nested config value', () => {
-			const cfg = new Config();
-			cfg.layers.set({
+		it('should error replacing non-existing nested config value', async () => {
+			const cfg = await new Config().init();
+
+			await cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore()
 			});
 
-			cfg.set('hi', 'hello {{name}}');
+			await cfg.set('hi', 'hello {{name}}');
 
 			expect(() => {
 				cfg.get('hi');
 			}).to.throw(Error, 'Config key "hi" references undefined variable "name"');
 		});
 
-		it('should merge all object values', () => {
-			const cfg = new Config();
-			cfg.layers.set({
+		it('should merge all object values', async () => {
+			const cfg = await new Config().init();
+
+			await cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore({
 					data: {
@@ -191,7 +201,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.layers.add({
+			await cfg.layers.add({
 				id: 'test',
 				store: new JSStore({
 					data: {
@@ -202,7 +212,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.set('foo.age', 42, 'test');
+			await cfg.set('foo.age', 42, 'test');
 
 			expect(cfg.get('foo')).to.deep.equal({
 				name: 'bar',
@@ -211,8 +221,9 @@ describe('JSStore', () => {
 			});
 		});
 
-		it('should stopping merge objects once non-object found', () => {
-			const cfg = new Config();
+		it('should stopping merge objects once non-object found', async () => {
+			const cfg = await new Config().init();
+
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore({
@@ -224,7 +235,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.layers.add({
+			await cfg.layers.add({
 				id: 'test',
 				store: new JSStore({
 					data: {
@@ -233,7 +244,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.set('foo.age', 42, 'test');
+			await cfg.set('foo.age', 42, 'test');
 
 			expect(cfg.get('foo')).to.deep.equal({
 				age: 42,
@@ -241,8 +252,9 @@ describe('JSStore', () => {
 			});
 		});
 
-		it('should get a value from a specific layer', () => {
-			const cfg = new Config();
+		it('should get a value from a specific layer', async () => {
+			const cfg = await new Config().init();
+
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore({
@@ -252,7 +264,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.layers.add({
+			await cfg.layers.add({
 				id: 'test',
 				store: new JSStore({
 					data: {
@@ -261,13 +273,14 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.set('foo', 'bar2', 'test');
+			await cfg.set('foo', 'bar2', 'test');
 
 			expect(cfg.get('foo', undefined, 'test')).to.equal('bar2');
 		});
 
-		it('should get a value from a non-existent layer', () => {
-			const cfg = new Config();
+		it('should get a value from a non-existent layer', async () => {
+			const cfg = await new Config().init();
+
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore()
@@ -280,8 +293,9 @@ describe('JSStore', () => {
 	});
 
 	describe('has()', () => {
-		it('should determine if a key is defined', () => {
-			const cfg = new Config();
+		it('should determine if a key is defined', async () => {
+			const cfg = await new Config().init();
+
 			cfg.layers.set({
 				id: Config.Base,
 				store: new JSStore({
@@ -293,7 +307,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.layers.add({
+			await cfg.layers.add({
 				id: 'test',
 				store: new JSStore({
 					data: {
@@ -304,7 +318,7 @@ describe('JSStore', () => {
 				})
 			});
 
-			cfg.set('foo.age', 42, 'test');
+			await cfg.set('foo.age', 42, 'test');
 
 			expect(cfg.has('bar')).to.equal(false);
 			expect(cfg.has('foo.name')).to.equal(true);
@@ -314,9 +328,9 @@ describe('JSStore', () => {
 	});
 
 	describe('delete()', () => {
-		it('should delete a value', () => {
-			const cfg = new Config({ store: JSStore });
-			cfg.set('foo', 'bar');
+		it('should delete a value', async () => {
+			const cfg = await new Config().init({ store: JSStore });
+			await cfg.set('foo', 'bar');
 
 			let r = cfg.delete('foo');
 			expect(r).to.equal(true);
@@ -327,9 +341,9 @@ describe('JSStore', () => {
 			expect(cfg.get()).to.deep.equal({});
 		});
 
-		it('should delete a deeply nested value', () => {
-			const cfg = new Config({ store: JSStore });
-			cfg.set('foo.bar.baz', 'wiz');
+		it('should delete a deeply nested value', async () => {
+			const cfg = await new Config().init({ store: JSStore });
+			await cfg.set('foo.bar.baz', 'wiz');
 			expect(cfg.get()).to.deep.equal({ foo: { bar: { baz: 'wiz' } } });
 
 			let r = cfg.delete('foo.bar.baz');
@@ -341,10 +355,10 @@ describe('JSStore', () => {
 			expect(cfg.get()).to.deep.equal({});
 		});
 
-		it('should delete a nested object', () => {
-			const cfg = new Config({ store: JSStore });
-			cfg.set('foo.pow', 'wow');
-			cfg.set('foo.bar.baz', 'wiz');
+		it('should delete a nested object', async () => {
+			const cfg = await new Config().init({ store: JSStore });
+			await cfg.set('foo.pow', 'wow');
+			await cfg.set('foo.bar.baz', 'wiz');
 
 			expect(cfg.get()).to.deep.equal({
 				foo: {
@@ -370,10 +384,10 @@ describe('JSStore', () => {
 			});
 		});
 
-		it('should fail to delete if layer is readonly', () => {
-			const cfg = new Config();
-			cfg.layers.add({ id: 'test', store: JSStore });
-			cfg.set('foo', 'bar', 'test');
+		it('should fail to delete if layer is readonly', async () => {
+			const cfg = await new Config().init();
+			await cfg.layers.add({ id: 'test', store: JSStore });
+			await cfg.set('foo', 'bar', 'test');
 
 			const layer = cfg.layers.get('test');
 			layer.readonly = true;
@@ -385,24 +399,24 @@ describe('JSStore', () => {
 	});
 
 	describe('set()', () => {
-		it('should set a new value', () => {
-			const cfg = new Config({ store: JSStore });
-			cfg.set('foo', 'bar');
+		it('should set a new value', async () => {
+			const cfg = await new Config().init({ store: JSStore });
+			await cfg.set('foo', 'bar');
 			expect(cfg.get('foo')).to.equal('bar');
 		});
 
-		it('should override an existing value', () => {
-			const cfg = new Config({ store: JSStore });
-			cfg.set('foo', 'bar');
-			cfg.set('foo', 'baz');
+		it('should override an existing value', async () => {
+			const cfg = await new Config().init({ store: JSStore });
+			await cfg.set('foo', 'bar');
+			await cfg.set('foo', 'baz');
 			expect(cfg.get('foo')).to.equal('baz');
 		});
 	});
 
 	describe('toString()', () => {
-		it('should render the config layers to a string', () => {
-			const cfg = new Config();
-			cfg.set('foo', 'bar', { id: 'test', store: JSStore });
+		it('should render the config layers to a string', async () => {
+			const cfg = await new Config().init();
+			await cfg.set('foo', 'bar', { id: 'test', store: JSStore });
 			expect(cfg.toString()).to.equal([
 				'{',
 				'  "Symbol(base)": {},',
@@ -413,9 +427,9 @@ describe('JSStore', () => {
 			].join('\n'));
 		});
 
-		it('should render the config layers with custom layer to a string', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'), 'good');
+		it('should render the config layers with custom layer to a string', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'), 'good');
 			expect(cfg.toString()).to.equal([
 				'{',
 				'  "Symbol(base)": {},',
@@ -428,13 +442,11 @@ describe('JSStore', () => {
 	});
 
 	describe('save()', () => {
-		it('should error trying to save a .js config', () => {
-			const cfg = new Config();
-			cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'));
+		it('should error trying to save a .js config', async () => {
+			const cfg = await new Config().init();
+			await cfg.load(path.join(__dirname, 'fixtures', 'js', 'good.js'));
 
-			expect(() => {
-				cfg.save();
-			}).to.throw(Error, 'Saving JavaScript config files is unsupported');
+			await expect(cfg.save()).to.eventually.be.rejectedWith(Error, 'Saving JavaScript config files is unsupported');
 		});
 	});
 });

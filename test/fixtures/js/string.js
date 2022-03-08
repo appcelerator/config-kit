@@ -1,1 +1,1 @@
-module.exports = 'hi';
+export default 'hi';

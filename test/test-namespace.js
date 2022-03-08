@@ -1,12 +1,15 @@
-import Config, { Joi } from '../dist/index';
+import Config, { Joi } from '../src/index.js';
 import path from 'path';
+import { expect } from 'chai';
+
+const __dirname = path.dirname(new URL('', import.meta.url).pathname);
 
 describe('Namespaces', () => {
 	describe('schemaless', () => {
 		describe('layer', () => {
-			it('should create a new namespaced layer with data', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should create a new namespaced layer with data', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					data: { foo: 'bar' },
 					id: 'test',
 					namespace: 'test'
@@ -20,9 +23,9 @@ describe('Namespaces', () => {
 		});
 
 		describe('load()', () => {
-			it('should load a file into a namespaced layer', () => {
-				const cfg = new Config();
-				cfg.load(path.join(__dirname, 'fixtures', 'json', 'good.json'), { namespace: 'test' });
+			it('should load a file into a namespaced layer', async () => {
+				const cfg = await new Config().init();
+				await cfg.load(path.join(__dirname, 'fixtures', 'json', 'good.json'), { namespace: 'test' });
 
 				expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
 				expect(cfg.get('foo')).to.equal(undefined);
@@ -32,7 +35,7 @@ describe('Namespaces', () => {
 				expect(cfg.has('test.foo')).to.equal(true);
 				expect(cfg.has('test.bar')).to.equal(false);
 
-				cfg.set('test.baz', 'wiz');
+				await cfg.set('test.baz', 'wiz');
 				expect(cfg.get('test')).to.deep.equal({ foo: 'bar', baz: 'wiz' });
 
 				expect(cfg.delete('test.foo')).to.equal(true);
@@ -42,9 +45,9 @@ describe('Namespaces', () => {
 				expect(cfg.get('test')).to.deep.equal({ baz: 'wiz' });
 			});
 
-			it('should load a file that is already namespaced into a namespaced layer', () => {
-				const cfg = new Config();
-				cfg.load(path.join(__dirname, 'fixtures', 'json', 'good-ns.json'), { namespace: 'test' });
+			it('should load a file that is already namespaced into a namespaced layer', async () => {
+				const cfg = await new Config().init();
+				await cfg.load(path.join(__dirname, 'fixtures', 'json', 'good-ns.json'), { namespace: 'test' });
 
 				expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
 				expect(cfg.get('foo')).to.equal(undefined);
@@ -54,7 +57,7 @@ describe('Namespaces', () => {
 				expect(cfg.has('test.foo')).to.equal(true);
 				expect(cfg.has('test.bar')).to.equal(false);
 
-				cfg.set('test.baz', 'wiz');
+				await cfg.set('test.baz', 'wiz');
 				expect(cfg.get('test')).to.deep.equal({ foo: 'bar', baz: 'wiz' });
 
 				expect(cfg.delete('test.foo')).to.equal(true);
@@ -66,11 +69,11 @@ describe('Namespaces', () => {
 		});
 
 		describe('get()', () => {
-			it('should get an empty layer', () => {
-				const cfg = new Config();
+			it('should get an empty layer', async () => {
+				const cfg = await new Config().init();
 				expect(cfg.get()).to.deep.equal({});
 
-				cfg.layers.add({
+				await cfg.layers.add({
 					id: 'test',
 					namespace: 'test'
 				});
@@ -82,9 +85,9 @@ describe('Namespaces', () => {
 		});
 
 		describe('has()', () => {
-			it('should return undefined for empty layer', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should return undefined for empty layer', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					id: 'test',
 					namespace: 'test'
 				});
@@ -97,9 +100,9 @@ describe('Namespaces', () => {
 		});
 
 		describe('merge()', () => {
-			it('should merge data into namespaced layer', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should merge data into namespaced layer', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					id: 'test',
 					namespace: 'test'
 				});
@@ -125,14 +128,14 @@ describe('Namespaces', () => {
 		});
 
 		describe('set()/delete()', () => {
-			it('should set a value in a namespaced layer', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should set a value in a namespaced layer', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					id: 'test',
 					namespace: 'test'
 				});
 
-				cfg.set('test.foo', 'bar', 'test');
+				await cfg.set('test.foo', 'bar', 'test');
 				expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
 
 				expect(cfg.data('test')).to.deep.equal({ foo: 'bar' });
@@ -151,24 +154,24 @@ describe('Namespaces', () => {
 
 	describe('schema', () => {
 		describe('load()', () => {
-			it('should fail if loaded file validation fails', () => {
-				const cfg = new Config();
-				expect(() => {
+			it('should fail if loaded file validation fails', async () => {
+				const cfg = await new Config().init();
+				await expect(
 					cfg.load(path.join(__dirname, 'fixtures', 'json', 'good.json'), {
 						namespace: 'test',
 						schema: Joi.object({
 							foo: Joi.string().valid('baz'),
 							count: Joi.number().valid(1)
 						})
-					});
-				}).to.throw(Error, /^Failed to load config file/);
+					})
+				).to.eventually.be.rejectedWith(Error, /^Failed to load config file/);
 			});
 		});
 
 		describe('merge()', () => {
-			it('should fail to merge if schema validation fails', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should fail to merge if schema validation fails', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					id: 'test',
 					namespace: 'test',
 					schema: Joi.object({
@@ -189,9 +192,9 @@ describe('Namespaces', () => {
 		});
 
 		describe('set()/delete()', () => {
-			it('should fail to delete a value', () => {
-				const cfg = new Config();
-				cfg.layers.add({
+			it('should fail to delete a value', async () => {
+				const cfg = await new Config().init();
+				await cfg.layers.add({
 					data: { foo: 'bar' },
 					id: 'test',
 					namespace: 'test',
@@ -202,9 +205,9 @@ describe('Namespaces', () => {
 
 				expect(cfg.get()).to.deep.equal({ test: { foo: 'bar' } });
 
-				expect(() => {
-					cfg.set('test.foo', 'baz', 'test');
-				}).to.throw(Error, 'Not allowed to set read-only property');
+				await expect(
+					cfg.set('test.foo', 'baz', 'test')
+				).to.eventually.be.rejectedWith(Error, 'Not allowed to set read-only property');
 
 				expect(() => {
 					cfg.delete('test.foo');

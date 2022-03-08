@@ -1,12 +1,11 @@
 import fs from 'fs-extra';
-import importFresh from 'import-fresh';
 import Joi from 'joi';
-import JSONStore from './stores/json-store';
+import JSONStore from './stores/json-store.js';
 import path from 'path';
 import snooplogg from 'snooplogg';
-import Store from './store';
-import Values from 'joi/lib/values';
-import { getSchemaInitialValues, validate } from './util';
+import Store from './store.js';
+import Values from 'joi/lib/values.js';
+import { getSchemaInitialValues, validate } from './util.js';
 
 const { log } = snooplogg('config-kit')('js-store');
 const { highlight } = snooplogg.styles;
@@ -20,6 +19,12 @@ export default class Layer {
 	 * @type {Boolean}
 	 */
 	allowNulls = false;
+
+	/**
+	 * Values extracted from the environment variables as defined by the schema.
+	 * @type {Object}
+	 */
+	env = null;
 
 	/**
 	 * The path to the file to write the config file to. This value can be overwritten with a file
@@ -104,9 +109,10 @@ export default class Layer {
 	 * @param {Boolean} [opts.static] - Indicates if this layer can be unloaded.
 	 * @param {Store} [opts.store] - The data store. Defaults to a `JSONStore` instance.
 	 * @param {Function} [opts.validate] - A function to call and validate changes against a schema.
+	 * @returns {Promise}
 	 * @access public
 	 */
-	constructor(opts = {}) {
+	async init(opts = {}) {
 		this.allowNulls = opts.allowNulls;
 		this.id         = opts.id || null;
 		this.namespace  = opts.namespace;
@@ -124,8 +130,9 @@ export default class Layer {
 		let defaults, env;
 
 		if (opts.schema) {
-			this.loadSchema(opts.schema);
+			await this.loadSchema(opts.schema);
 			({ defaults, env } = getSchemaInitialValues(this.schema));
+			this.env = env;
 		}
 
 		if (opts.store instanceof Store) {
@@ -151,7 +158,7 @@ export default class Layer {
 		}
 
 		if (opts.file) {
-			this.load(opts.file, opts.graceful !== false);
+			await this.load(opts.file, opts.graceful !== false);
 		}
 
 		if (env) {
@@ -159,6 +166,8 @@ export default class Layer {
 			// already done the validation in `getSchemaInitialValues()`
 			this.store.merge(env);
 		}
+
+		return this;
 	}
 
 	/**
@@ -253,10 +262,10 @@ export default class Layer {
 	 * @param {String} file - The path to the config file to load.
 	 * @param {Boolean} [graceful=false] - When `true`, doesn't error if the config file does not
 	 * exist.
-	 * @returns {Layer}
+	 * @returns {Promise} Resolves this `Layer` instance.
 	 * @access public
 	 */
-	load(file, graceful) {
+	async load(file, graceful) {
 		if (!file || typeof file !== 'string') {
 			throw new TypeError('Expected config file path to be a string');
 		}
@@ -269,7 +278,7 @@ export default class Layer {
 		}
 
 		if (!graceful || exists) {
-			this.store.load(file);
+			await this.store.load(file);
 			const data = this.store.get();
 			this.validate({
 				action: 'load',
@@ -288,7 +297,7 @@ export default class Layer {
 	 * @returns {Layer}
 	 * @access public
 	 */
-	loadSchema(schema) {
+	async loadSchema(schema) {
 		if (!schema) {
 			throw new TypeError('Expected schema to be an object or file');
 		}
@@ -306,20 +315,18 @@ export default class Layer {
 			log(`${String(this.id)} Loading ${highlight(schema)}`);
 			if (ext === '.json') {
 				try {
-					schema = fs.readJsonSync(schema);
+					schema = await fs.readJson(schema);
 				} catch (e) {
 					throw new Error(`Failed to parse schema json file: ${e.message}`);
 				}
 			} else if (ext === '.js') {
 				try {
-					schema = importFresh(schema);
+					schema = await import(schema);
+					if (schema?.default) {
+						schema = schema.default;
+					}
 				} catch (e) {
 					throw new Error(`Failed to parse schema js file: ${e.message}`);
-				}
-
-				// check if we have a babel transpiled file
-				if (schema && typeof schema === 'object' && schema.__esModule && schema.default) {
-					schema = schema.default;
 				}
 
 				if (typeof schema === 'function') {
@@ -422,12 +429,12 @@ export default class Layer {
 	 * Saves a specific layer's store to disk.
 	 *
 	 * @param {String} [file] - The file to write the layers store to.
-	 * @returns {Layer}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	save(file) {
+	async save(file) {
 		log(`${String(this.id)} Saving to file: ${highlight(file || this.file)}`);
-		this.store.save(file || this.file);
+		await this.store.save(file || this.file);
 		return this;
 	}
 

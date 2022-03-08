@@ -84,9 +84,10 @@ export default class Store {
 	 * Loads a config file.
 	 *
 	 * @param {String} file - The path to the config file to load.
+	 * @returns {Promise}
 	 * @access public
 	 */
-	load(file) {
+	async load(file) {
 		throw new Error('load() not implemented');
 	}
 
@@ -104,9 +105,10 @@ export default class Store {
 	 * Saves the data to disk.
 	 *
 	 * @param {String} file - The filename to save the data to.
+	 * @returns {Promise}
 	 * @access public
 	 */
-	save(file) {
+	async save(file) {
 		throw new Error('save() not implemented');
 	}
 

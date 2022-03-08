@@ -1,4 +1,5 @@
-import { detectLineEndings } from '../dist/stores/xml/util';
+import { detectLineEndings } from '../src/stores/xml/util.js';
+import { expect } from 'chai';
 
 describe('xml', () => {
 	describe('util', () => {

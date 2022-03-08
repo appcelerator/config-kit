@@ -1,6 +1,6 @@
-import Layer from './layer';
+import Layer from './layer.js';
 import snooplogg from 'snooplogg';
-import { arrayify, hashValue, validate } from './util';
+import { arrayify, hashValue, validate } from './util.js';
 
 const { log } = snooplogg('config-kit')('layer-list');
 const { highlight } = snooplogg.styles;
@@ -64,14 +64,15 @@ export default class LayerList {
 	 * @param {Object} [opts.schema] - A Joi schema for the base layer.
 	 * @param {Store|Function} [opts.store] - A store instance or store class to use for the base
 	 * layer.
+	 * @returns {Promise}
 	 * @access public
 	 */
-	constructor(opts = {}) {
+	async init(opts = {}) {
 		this.allowNulls   = opts.allowNulls;
 		this.allowUnknown = opts.allowUnknown !== false;
 		this.applyOwner   = opts.applyOwner !== false;
 
-		this.layers.push(this.map[Base] = new Layer({
+		const layer = await new Layer().init({
 			allowNulls: opts.allowNulls,
 			applyOwner: opts.applyOwner,
 			data:       opts.data,
@@ -89,17 +90,22 @@ export default class LayerList {
 					...args.validateOptions
 				}
 			})
-		}));
+		});
+
+		this.map[Base] = layer;
+		this.layers.push(layer);
+
+		return this;
 	}
 
 	/**
 	 * Adds a layer. If the layer id already exists, it will replace it.
 	 *
 	 * @param {Layer|Object|String} layer - The layer, layer contructor arguments, or layer id.
-	 * @returns {Layer}
+	 * @returns {Promise} Resolves this `Layer` instance.
 	 * @access public
 	 */
-	add(layer) {
+	async add(layer) {
 		if (!layer) {
 			throw new TypeError('Expected layer to be an object');
 		}
@@ -158,7 +164,7 @@ export default class LayerList {
 
 		if (!isLayer) {
 			log(`Creating new layer: ${highlight(String(id))}`);
-			layer = new Layer(layer);
+			layer = await new Layer().init(layer);
 		} else if (existing && Object.prototype.hasOwnProperty.call(existing, 'file')) {
 			layer.file = existing.file;
 		}
@@ -283,11 +289,11 @@ export default class LayerList {
 	 * An alias for `add()`.
 	 *
 	 * @param {Layer|Object|String} layer - The layer, layer contructor arguments, or layer id.
-	 * @returns {Layer}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	set(layer) {
-		return this.add(layer);
+	async set(layer) {
+		return await this.add(layer);
 	}
 
 	/**

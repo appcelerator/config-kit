@@ -1,6 +1,6 @@
-import Node from '../../node';
+import Node from '../../node.js';
 import snooplogg from 'snooplogg';
-import { cast, createDOMNode, dom, getDOMNodeChildren } from './util';
+import { cast, createDOMNode, dom, getDOMNodeChildren } from './util.js';
 
 const { log } = snooplogg('config-kit')('XNode');
 const { highlight } = snooplogg.styles;
