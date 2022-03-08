@@ -1,50 +1,52 @@
-import LayerList, { Base } from '../dist/layer-list';
+import LayerList, { Base } from '../src/layer-list.js';
+import { expect } from 'chai';
 
 describe('LayerList', () => {
-	it('should remove a layer', () => {
-		const list = new LayerList();
-		list.add('foo');
+	it('should remove a layer', async () => {
+		const list = await new LayerList().init();
+		await list.add('foo');
 		expect(list.remove('foo')).to.equal(true);
 		expect(list.remove('foo')).to.equal(false);
 	});
 
-	it('should error if layer being added is invalid', () => {
-		const list = new LayerList();
+	it('should error if layer being added is invalid', async () => {
+		const list = await new LayerList().init();
 
-		expect(() => {
-			list.add();
-		}).to.throw(TypeError, 'Expected layer to be an object');
+		await expect(
+			list.add()
+		).to.eventually.be.rejectedWith(TypeError, 'Expected layer to be an object');
 
-		expect(() => {
-			list.add(123);
-		}).to.throw(TypeError, 'Expected layer to be an object');
+		await expect(
+			list.add(123)
+		).to.eventually.be.rejectedWith(TypeError, 'Expected layer to be an object');
 
-		expect(() => {
-			list.add([]);
-		}).to.throw(TypeError, 'Expected layer to be an object');
+		await expect(
+			list.add([])
+		).to.eventually.be.rejectedWith(TypeError, 'Expected layer to be an object');
 	});
 
-	it('should error when adding a layer without an id', () => {
-		const list = new LayerList();
+	it('should error when adding a layer without an id', async () => {
+		const list = await new LayerList().init();
 
-		expect(() => {
-			list.add({});
-		}).to.throw(Error, 'Expected layer to have an id');
+		await expect(
+			list.add({})
+		).to.eventually.be.rejectedWith(Error, 'Expected layer to have an id');
 
-		expect(() => {
-			list.add({ id: null });
-		}).to.throw(Error, 'Expected layer to have an id');
+		await expect(
+			list.add({ id: null })
+		).to.eventually.be.rejectedWith(Error, 'Expected layer to have an id');
 
-		expect(() => {
-			list.add({ id: '' });
-		}).to.throw(Error, 'Expected layer to have an id');
+		await expect(
+			list.add({ id: '' })
+		).to.eventually.be.rejectedWith(Error, 'Expected layer to have an id');
 	});
 
-	it('should loop over layer list', () => {
-		const list = new LayerList();
-		list.add('a');
-		list.add('b');
-		list.add('c');
+	it('should loop over layer list', async () => {
+		const list = await new LayerList().init();
+
+		await list.add('a');
+		await list.add('b');
+		await list.add('c');
 
 		let ids = [];
 		for (const item of list) {
@@ -59,24 +61,24 @@ describe('LayerList', () => {
 		expect(ids).to.deep.equal([ 'c', 'b', 'a', Base ]);
 	});
 
-	it('should error if validator is not a function', () => {
-		const list = new LayerList();
-		const layer = list.add('foo');
+	it('should error if validator is not a function', async () => {
+		const list = await new LayerList().init();
+		const layer = await list.add('foo');
 
 		expect(() => {
 			layer.validate = 'bar';
 		}).to.throw(TypeError, 'Expected validator to be a function');
 	});
 
-	it('should error if validate is not a function', () => {
-		const list = new LayerList();
-		expect(() => {
-			list.add({ id: 'foo', validate: 'bar' });
-		}).to.throw(TypeError, 'Expected validate callback to be a function');
+	it('should error if validate is not a function', async () => {
+		const list = await new LayerList().init();
+		await expect(
+			list.add({ id: 'foo', validate: 'bar' })
+		).to.eventually.be.rejectedWith(TypeError, 'Expected validate callback to be a function');
 	});
 
-	it('should error if watch handler is not a function', () => {
-		const list = new LayerList();
+	it('should error if watch handler is not a function', async () => {
+		const list = await new LayerList().init();
 
 		expect(() => {
 			list.watch();
@@ -95,16 +97,16 @@ describe('LayerList', () => {
 		}).to.throw(TypeError, 'Expected handler to be a function');
 	});
 
-	it('should error adding a layer with invalid data', () => {
-		const list = new LayerList();
-		expect(() => {
-			list.add({ id: 'foo', data: 'bar' });
-		}).to.throw(TypeError, 'Expected layer data to be an object');
+	it('should error adding a layer with invalid data', async () => {
+		const list = await new LayerList().init();
+		await expect(
+			list.add({ id: 'foo', data: 'bar' })
+		).to.eventually.be.rejectedWith(TypeError, 'Expected layer data to be an object');
 	});
 
-	it('should render a layer to a string', () => {
-		const list = new LayerList();
-		const layer = list.add({ id: 'foo', data: { foo: 'bar' } });
+	it('should render a layer to a string', async () => {
+		const list = await new LayerList().init();
+		const layer = await list.add({ id: 'foo', data: { foo: 'bar' } });
 		expect(layer.toString()).to.equal('{"foo":"bar"}');
 	});
 });

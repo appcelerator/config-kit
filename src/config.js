@@ -1,14 +1,14 @@
 import Joi from 'joi';
-import JSStore from './stores/js-store';
-import JSONStore from './stores/json-store';
-import LayerList, { All, Base } from './layer-list';
-import Node from './node';
+import JSStore from './stores/js-store.js';
+import JSONStore from './stores/json-store.js';
+import LayerList, { All, Base } from './layer-list.js';
+import Node from './node.js';
 import path from 'path';
 import snooplogg from 'snooplogg';
-import Store from './store';
-import StoreRegistry from './store-registry';
-import XMLStore from './stores/xml-store';
-import { arrayify, hashValue, splitKey, unique } from './util';
+import Store from './store.js';
+import StoreRegistry from './store-registry.js';
+import XMLStore from './stores/xml-store.js';
+import { arrayify, hashValue, splitKey, unique } from './util.js';
 
 const { log } = snooplogg('config-kit')('config');
 const { highlight } = snooplogg.styles;
@@ -75,6 +75,18 @@ export default class Config {
 	watcherMap = new Map();
 
 	/**
+	 * Init the instance and make sure it's not being invoked using the old constructor options.
+	 *
+	 * @param {*} opts - This value must be `undefined`.
+	 * @access public
+	 */
+	constructor(opts) {
+		if (opts !== undefined) {
+			throw new Error('Please call init with constructor options');
+		}
+	}
+
+	/**
 	 * Initializes the config object.
 	 *
 	 * @param {Object} [opts] - Various options.
@@ -91,9 +103,10 @@ export default class Config {
 	 * layer.
 	 * @param {Function|Array.<Function>} [opts.stores] - A store class or array of store classes
 	 * to register in addition to the built-in `JSStore` and `JSONStore`.
+	 * @returns {Promise}
 	 * @access public
 	 */
-	constructor(...opts) {
+	async init(...opts) {
 		if (opts.length) {
 			for (const opt of opts) {
 				if (opt && typeof opt !== 'object') {
@@ -125,7 +138,7 @@ export default class Config {
 			store = new StoreClass();
 		}
 
-		this.layers = new LayerList({
+		this.layers = await new LayerList().init({
 			allowNulls:   opts.allowNulls,
 			allowUnknown: opts.allowUnknown !== false,
 			applyOwner:   opts.applyOwner !== false,
@@ -136,8 +149,10 @@ export default class Config {
 		});
 
 		for (const layer of arrayify(opts.layers)) {
-			this.layers.add(layer);
+			await this.layers.add(layer);
 		}
+
+		return this;
 	}
 
 	/**
@@ -290,10 +305,10 @@ export default class Config {
 	 * @param {Object|String} [opts.schema] - A Joi schema, object to compile into a Joi schema, or
 	 * a path to a `.js` or `.json` file containing a Joi schema.
 	 * @param {Boolean} [opts.static] - Indicates if this layer can be unloaded.
-	 * @returns {Config}
+	 * @returns {Promise} Resolves this `Config` instance.
 	 * @access public
 	 */
-	load(file, opts = {}) {
+	async load(file, opts = {}) {
 		if (!file || typeof file !== 'string') {
 			throw new TypeError('Expected config file to be a non-empty string');
 		}
@@ -322,7 +337,7 @@ export default class Config {
 		for (const id of layers) {
 			const existing = this.layers.get(id);
 
-			const layer = this.layers.add({
+			const layer = await this.layers.add({
 				...opts,
 				file,
 				graceful: !!opts.graceful,
@@ -414,10 +429,10 @@ export default class Config {
 	 * @param {Object} opts - Various options.
 	 * @param {String} opts.action - The action to perform. Must be 'set', 'push', 'pop', 'shift',
 	 * or 'unshift'.
-	 * @returns {*}
+	 * @returns {Promise}
 	 * @access private
 	 */
-	_mutate({ action, key, value, id }) {
+	async _mutate({ action, key, value, id }) {
 		key = splitKey(key);
 
 		if (!key || !key.length) {
@@ -446,7 +461,7 @@ export default class Config {
 		this._pause();
 
 		for (const _id of unique(id || this.resolve({ action }))) {
-			const layer = this.layers.get(_id) || this.layers.add(_id);
+			const layer = this.layers.get(_id) || (await this.layers.add(_id));
 			const type = Array.isArray(value) ? 'array' : typeof value;
 			log(`${label} ${highlight(key.join('.'))} to a${type === 'array' || type === 'object' ? 'n' : ''} ${highlight(type)} on layer ${highlight(String(layer.id))}`);
 			layer.set(key, value, action);
@@ -492,11 +507,11 @@ export default class Config {
 	 * @param {String|Array.<String>} [key] - The config key.
 	 * @param {String|Symbol} [id] - The id for a specific layer to save. If not specified, then it
 	 * uses the config's default layer.
-	 * @returns {*}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	pop(key, id) {
-		return this._mutate({ id, key, action: 'pop' });
+	async pop(key, id) {
+		return await this._mutate({ id, key, action: 'pop' });
 	}
 
 	/**
@@ -506,11 +521,11 @@ export default class Config {
 	 * @param {*} value - The value to add.
 	 * @param {String|Symbol} [id] - The id for a specific layer to save. If not specified, then it
 	 * uses the config's default layer.
-	 * @returns {*}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	push(key, value, id) {
-		this._mutate({ id, key, action: 'push', value });
+	async push(key, value, id) {
+		await this._mutate({ id, key, action: 'push', value });
 		return this;
 	}
 
@@ -549,10 +564,10 @@ export default class Config {
 	 * loaded into the layer. If there is no filename, an error is thrown.
 	 * @param {String|Symbol} [optsOrFile.id] - The id for a specific layer to save. If not specified,
 	 * then it uses the config's default layer.
-	 * @returns {Config}
+	 * @returns {Promise} Resolves this `Config` instance.
 	 * @access public
 	 */
-	save(optsOrFile) {
+	async save(optsOrFile) {
 		let file;
 		let id;
 
@@ -569,7 +584,7 @@ export default class Config {
 			if (!layer) {
 				throw new Error(`Layer "${String(id)}" not found`);
 			}
-			layer.save(file);
+			await layer.save(file);
 		}
 		return this;
 	}
@@ -581,11 +596,11 @@ export default class Config {
 	 * @param {*} value - The value to set.
 	 * @param {String|Symbol} [id] - The id for a specific layer to save. If not specified, then it
 	 * uses the config's default layer.
-	 * @return {Config}
+	 * @return {Promise}
 	 * @access public
 	 */
-	set(key, value, id) {
-		this._mutate({ id, key, action: 'set', value });
+	async set(key, value, id) {
+		await this._mutate({ id, key, action: 'set', value });
 		return this;
 	}
 
@@ -595,11 +610,11 @@ export default class Config {
 	 * @param {String|Array.<String>} [key] - The config key.
 	 * @param {String|Symbol} [id] - The id for a specific layer. If not specified, then it uses
 	 * the config's default layer.
-	 * @returns {*}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	shift(key, id) {
-		return this._mutate({ id, key, action: 'shift' });
+	async shift(key, id) {
+		return await this._mutate({ id, key, action: 'shift' });
 	}
 
 	/**
@@ -640,11 +655,11 @@ export default class Config {
 	 * @param {*} value - The value to add.
 	 * @param {String|Symbol} [id] - The id for a specific layer. If not specified, then it uses
 	 * the config's default layer.
-	 * @returns {Config}
+	 * @returns {Promise}
 	 * @access public
 	 */
-	unshift(key, value, id) {
-		this._mutate({ id, key, action: 'unshift', value });
+	async unshift(key, value, id) {
+		await this._mutate({ id, key, action: 'unshift', value });
 		return this;
 	}
 

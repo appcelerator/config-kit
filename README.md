@@ -4,8 +4,6 @@
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Deps][david-image]][david-url]
-[![Dev Deps][david-dev-image]][david-dev-url]
 
 ## Features
 
@@ -28,13 +26,59 @@
 ```js
 import Config from 'config-kit';
 
-const config = new Config();
+const config = await new Config().init();
 
-config.set('foo.bar', true);
+await config.set('foo.bar', true);
 
 console.log(config.get('foo')); // { "bar": true }
 
-config.load('/path/to/myconfig.json');
+await config.load('/path/to/myconfig.json');
+
+await config.set('foo.baz', 'pow');
+
+await config.save();
+```
+
+## Migrating from v1
+
+v2 introduces major breaking API changes. This package was refactored to be a ES module.
+This means `.js` config and schema files also need to be ES modules. Since you can't
+synchronously import ES modules, there was no choice but to make nearly every API async.
+
+When creating a new `Config` instance, simply prepend with `await` and call `init()` with the
+constructor options:
+
+#### v1
+
+```js
+const cfg = new Config({ /* opts */ });
+```
+
+#### v2
+
+```js
+const cfg = await new Config().init({ /* opts */ });
+```
+
+The following functions are now async: `load()`, `pop()`, `push()`, `save()`, `set()`, `shift()`,
+`unshift()`.
+
+#### v1
+
+```js
+cfg.load({ file: '/path/to/file' });
+cfg.set('foo', 'bar');
+cfg.push('baz', 'wiz');
+cfg.save();
+```
+
+#### v2
+
+```js
+await cfg.load({ file: '/path/to/file' });
+await cfg.set('foo', 'bar');
+await cfg.push('baz', 'wiz');
+await cfg.save();
 ```
 
 ## License
@@ -48,8 +92,4 @@ in this distribution for more information.
 [npm-url]: https://npmjs.org/package/config-kit
 [downloads-image]: https://img.shields.io/npm/dm/config-kit.svg
 [downloads-url]: https://npmjs.org/package/config-kit
-[david-image]: https://img.shields.io/david/appcelerator/config-kit.svg
-[david-url]: https://david-dm.org/appcelerator/config-kit
-[david-dev-image]: https://img.shields.io/david/dev/appcelerator/config-kit.svg
-[david-dev-url]: https://david-dm.org/appcelerator/config-kit#info=devDependencies
 [joi]: https://www.npmjs.com/package/@hapi/joi

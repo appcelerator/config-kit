@@ -1,5 +1,7 @@
+import fs from 'fs';
 import Joi from 'joi';
 import snooplogg from 'snooplogg';
+import { createRequire } from 'module';
 
 /**
  * Ensures that a value is an array. If not, it wraps the value in an array.
@@ -89,6 +91,43 @@ export function hashValue(it) {
 	}
 	return hash >>> 0;
 }
+
+// /**
+//  * Loads a JavaScript file. Note that the JavaScript file can use import(), but not require().
+//  *
+//  * @param {String} file - The path of the .js file to load.
+//  * @returns {Object}
+//  */
+// export async function loadJS(file) {
+// 	// const code = fs.readFileSync(file, 'utf-8');
+// 	// const module = {
+// 	// 	exports: {}
+// 	// };
+
+// 	// const require = createRequire(import.meta.url);
+// 	// const module = require(file);
+// 	const module = await import(file);
+// 	console.log(module);
+
+// 	// const fn = new Function('module', 'exports', code);
+// 	// fn(module, module.exports);
+
+// 	if (!module || typeof module !== 'object') {
+// 		return {};
+// 	}
+
+// 	const { exports } = module;
+// 	if (exports === undefined) {
+// 		return {};
+// 	}
+
+// 	if (typeof exports !== 'object') {
+// 		return exports;
+// 	}
+
+// 	// check if we have a babel transpiled file
+// 	return (exports.__esModule && exports.default) ?? exports;
+// }
 
 /**
  * Validates and splits a key into an array.

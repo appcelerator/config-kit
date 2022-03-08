@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
-import importFresh from 'import-fresh';
-import JSONStore from './json-store';
-import Node from '../node';
+import JSONStore from './json-store.js';
+import Node from '../node.js';
 import snooplogg from 'snooplogg';
 
 const { log } = snooplogg('config-kit')('js-store');
@@ -21,10 +20,10 @@ export default class JSStore extends JSONStore {
 	 * Loads a config file.
 	 *
 	 * @param {String} file - The path to the config file to load.
-	 * @returns {JSONStore}
+	 * @returns {Promise} Resolves this `JSONStore` instance.
 	 * @access public
 	 */
-	load(file) {
+	async load(file) {
 		if (!fs.existsSync(file)) {
 			const err = Error(`File not found: ${file}`);
 			err.code = 'ENOENT';
@@ -32,10 +31,9 @@ export default class JSStore extends JSONStore {
 		}
 
 		log(`Loading ${highlight(file)}`);
-		let data = importFresh(file);
+		let data = await import(`file://${file}`);
 
-		// check if we have a babel transpiled file
-		if (data && typeof data === 'object' && data.__esModule && data.default) {
+		if (data?.default) {
 			data = data.default;
 		}
 
@@ -56,9 +54,10 @@ export default class JSStore extends JSONStore {
 	/**
 	 * Saves the data to disk.
 	 *
+	 * @resolves {Promise}
 	 * @access public
 	 */
-	save() {
+	async save() {
 		throw new Error('Saving JavaScript config files is unsupported');
 	}
 }

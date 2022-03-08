@@ -1,8 +1,9 @@
 {
   "name": "config-kit",
-  "version": "1.7.2",
-  "description": "A universal, layered configuration system.",
-  "main": "./dist/index.js",
+  "version": "2.0.0",
+  "description": "A universal, layered configuration system",
+  "type": "module",
+  "exports": "./src/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
   "maintainers": [
     "Chris Barber <cbarber@axway.com>"
@@ -14,30 +15,37 @@
     "cli"
   ],
   "scripts": {
-    "build": "gulp build",
-    "coverage": "gulp coverage",
-    "docs": "gulp docs",
-    "lint": "gulp lint",
-    "prepare": "gulp build",
-    "test": "gulp test"
+    "coverage": "c8 npm run test",
+    "lint": "eslint --ignore-pattern test/fixtures src test",
+    "prepublishOnly": "npm run lint",
+    "test": "npm run lint && mocha test/**/test-*.js --reporter spec"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.7.5",
-    "detect-indent": "^6.1.0",
-    "fs-extra": "^9.1.0",
+    "@xmldom/xmldom": "^0.8.1",
+    "detect-indent": "^7.0.0",
+    "fs-extra": "^10.0.1",
     "import-fresh": "^3.3.0",
-    "joi": "^17.5.0",
-    "snooplogg": "^3.0.2",
-    "source-map-support": "^0.5.21"
+    "joi": "^17.6.0",
+    "snooplogg": "^5.0.0"
   },
   "devDependencies": {
-    "appcd-gulp": "^3.2.0",
+    "c8": "^7.11.0",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.10.0",
+    "eslint-plugin-chai-expect": "^3.0.0",
+    "eslint-plugin-mocha": "^10.0.3",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-security": "^1.4.0",
+    "mocha": "^9.2.1",
+    "sinon": "^13.0.1",
+    "sinon-chai": "^3.7.0",
     "tmp": "^0.2.1"
   },
   "homepage": "https://github.com/appcelerator/config-kit",
   "bugs": "https://github.com/appcelerator/config-kit/issues",
   "repository": "https://github.com/appcelerator/config-kit",
   "engines": {
-    "node": ">=10"
+    "node": ">=14.15.0"
   }
 }

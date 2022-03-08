@@ -4,7 +4,8 @@
 // import fs from 'fs-extra';
 // import path from 'path';
 // import tmp from 'tmp';
-import { XMLStore } from '../dist/index';
+import { XMLStore } from '../src/index.js';
+import { expect } from 'chai';
 
 // const tmpDir = tmp.dirSync({
 // 	mode: '755',

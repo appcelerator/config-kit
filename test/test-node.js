@@ -1,4 +1,5 @@
-import Node from '../dist/node';
+import Node from '../src/node.js';
+import { expect } from 'chai';
 
 describe('Node', () => {
 	it('should create a new node as an object', () => {

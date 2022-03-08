@@ -1,5 +1,6 @@
-import { JSONStore, Store } from '../dist/index';
-import StoreRegistry from '../dist/store-registry';
+import StoreRegistry from '../src/store-registry.js';
+import { expect } from 'chai';
+import { JSONStore, Store } from '../src/index.js';
 
 describe('StoreRegistry', () => {
 	it('should error if adding an invalid store class', () => {

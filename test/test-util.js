@@ -1,4 +1,5 @@
-import { getSchemaInitialValues, unique } from '../src/util';
+import { expect } from 'chai';
+import { getSchemaInitialValues, unique } from '../src/util.js';
 
 describe('Util', () => {
 	describe('unique()', () => {

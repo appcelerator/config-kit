@@ -5,7 +5,7 @@
  * directory will be applied to the file and any newly created directories.
  */
 
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 
 /**
@@ -20,9 +20,9 @@ import path from 'path';
  * @param {Number} [opts.uid] - The user id to apply to the file when assigning an owner.
  * @param {Function} fn - A function to call to perform the original filesystem operation.
  */
-function execute(dest, opts, fn) {
+async function execute(dest, opts, fn) {
 	if (opts.applyOwner === false || process.platform === 'win32' || !process.getuid || process.getuid() !== 0) {
-		fn(opts);
+		await fn(opts);
 		return;
 	}
 
@@ -30,9 +30,9 @@ function execute(dest, opts, fn) {
 	let origin = path.parse(dest).root;
 
 	if (!opts.uid) {
-		for (origin = dest; true; origin = path.dirname(origin)) {
+		for (let dir = dest; dir !== origin; dir = path.dirname(dir)) {
 			try {
-				const st = fs.lstatSync(origin);
+				const st = await fs.lstat(dir);
 				if (st.isDirectory()) {
 					opts = Object.assign({}, opts, { gid: st.gid, uid: st.uid });
 					break;
@@ -43,15 +43,15 @@ function execute(dest, opts, fn) {
 		}
 	}
 
-	fn(opts);
+	await fn(opts);
 
-	const chownSync = fs.lchownSync || fs.chownSync;
-	let stat = fs.lstatSync(dest);
+	const chown = fs.lchown || fs.chown;
+	let stat = await fs.lstat(dest);
 	while (dest !== origin && stat.uid !== opts.uid) {
 		try {
-			chownSync(dest, opts.uid, opts.gid);
+			await chown(dest, opts.uid, opts.gid);
 			dest = path.dirname(dest);
-			stat = fs.lstatSync(dest);
+			stat = await fs.lstat(dest);
 		} catch (e) {
 			break;
 		}
@@ -62,15 +62,16 @@ function execute(dest, opts, fn) {
  * Creates a directory and any parent directories if needed.
  *
  * @param {String} dest - The directory path to create.
- * @param {Object} [opts] - Various options plus options to pass into `fs.mkdirSync()`.
+ * @param {Object} [opts] - Various options plus options to pass into `fs.mkdir()`.
  * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
  * existing parent directory and apply the owner to the file and any newly created directories.
  * @param {Number} [opts.gid] - The group id to apply to the file when assigning an owner.
  * @param {Number} [opts.uid] - The user id to apply to the file when assigning an owner.
+ * @returns {Promise}
  */
-export function mkdirpSync(dest, opts = {}) {
-	execute(dest, opts, opts => {
-		fs.mkdirSync(dest, { mode: 0o777, ...opts, recursive: true });
+function mkdirp(dest, opts = {}) {
+	return execute(dest, opts, async opts => {
+		await fs.mkdirp(dest, { mode: 0o777, ...opts, recursive: true });
 	});
 }
 
@@ -85,11 +86,12 @@ export function mkdirpSync(dest, opts = {}) {
  * existing parent directory and apply the owner to the file and any newly created directories.
  * @param {Number} [opts.gid] - The group id to apply to the file when assigning an owner.
  * @param {Number} [opts.uid] - The user id to apply to the file when assigning an owner.
+ * @returns {Promise}
  */
-export function moveSync(src, dest, opts = {}) {
-	execute(dest, opts, opts => {
-		mkdirpSync(path.dirname(dest), opts);
-		fs.renameSync(src, dest);
+export function move(src, dest, opts = {}) {
+	return execute(dest, opts, async opts => {
+		await mkdirp(path.dirname(dest), opts);
+		await fs.rename(src, dest);
 	});
 }
 
@@ -104,10 +106,11 @@ export function moveSync(src, dest, opts = {}) {
  * existing parent directory and apply the owner to the file and any newly created directories.
  * @param {Number} [opts.gid] - The group id to apply to the file when assigning an owner.
  * @param {Number} [opts.uid] - The user id to apply to the file when assigning an owner.
+ * @returns {Promise}
  */
-export function writeFileSync(dest, contents, opts = {}) {
-	execute(dest, opts, opts => {
-		mkdirpSync(path.dirname(dest), { ...opts, mode: undefined });
-		fs.writeFileSync(dest, contents, opts);
+export function writeFile(dest, contents, opts = {}) {
+	return execute(dest, opts, async opts => {
+		await mkdirp(path.dirname(dest), { ...opts, mode: undefined });
+		await fs.writeFile(dest, contents, opts);
 	});
 }

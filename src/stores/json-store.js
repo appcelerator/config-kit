@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
-import Node from '../node';
+import Node from '../node.js';
 import path from 'path';
 import snooplogg from 'snooplogg';
-import Store from '../store';
-import { moveSync, writeFileSync } from '../fsutil';
+import Store from '../store.js';
+import { move, writeFile } from '../fsutil.js';
 
 const { log } = snooplogg('config-kit')('json-store');
 const { highlight } = snooplogg.styles;
@@ -137,10 +137,10 @@ export default class JSONStore extends Store {
 	 * Loads a config file.
 	 *
 	 * @param {String} file - The path to the config file to load.
-	 * @returns {JSONStore}
+	 * @returns {Promise} Resolves this `JSONStore` instance.
 	 * @access public
 	 */
-	load(file) {
+	async load(file) {
 		if (!fs.existsSync(file)) {
 			const err = new Error(`File not found: ${file}`);
 			err.code = 'ENOENT';
@@ -152,7 +152,7 @@ export default class JSONStore extends Store {
 
 		log(`Loading ${highlight(file)}`);
 		try {
-			content = fs.readFileSync(file, 'utf8');
+			content = await fs.readFile(file, 'utf8');
 		} catch (e) {
 			e.message = `Failed to load config file: ${e.message}`;
 			throw e;
@@ -190,10 +190,10 @@ export default class JSONStore extends Store {
 	 * Saves the data to disk.
 	 *
 	 * @param {String} file - The filename to save the data to.
-	 * @returns {JSONStore}
+	 * @returns {Promise} Resolves this `JSONStore` instance.
 	 * @access public
 	 */
-	save(file) {
+	async save(file) {
 		if (!file || typeof file !== 'string') {
 			throw new TypeError('Expected config file path to be a string');
 		}
@@ -204,8 +204,8 @@ export default class JSONStore extends Store {
 		}
 
 		const tmpFile = `${file}.${Date.now()}.tmp`;
-		writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), { applyOwner: this.applyOwner });
-		moveSync(tmpFile, file, { applyOwner: this.applyOwner });
+		await writeFile(tmpFile, JSON.stringify(this.data, null, 2), { applyOwner: this.applyOwner });
+		await move(tmpFile, file, { applyOwner: this.applyOwner });
 		log(`Wrote config file: ${highlight(file)}`);
 
 		return this;

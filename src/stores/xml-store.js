@@ -2,11 +2,11 @@ import detectIndent from 'detect-indent';
 import fs from 'fs-extra';
 import path from 'path';
 import snooplogg from 'snooplogg';
-import Store from '../store';
-import XNode from './xml/xnode';
-import { detectLineEndings, unescapeSequence } from './xml/util';
+import Store from '../store.js';
+import XNode from './xml/xnode.js';
+import { detectLineEndings, unescapeSequence } from './xml/util.js';
 import { DOMParser } from '@xmldom/xmldom';
-import { moveSync, writeFileSync } from '../fsutil';
+import { move, writeFile } from '../fsutil.js';
 
 const { log } = snooplogg('config-kit')('xml');
 const { highlight } = snooplogg.styles;
@@ -232,7 +232,7 @@ export default class XMLStore extends Store {
 	 * @returns {XMLStore}
 	 * @access public
 	 */
-	save(file) {
+	async save(file) {
 		if (!file || typeof file !== 'string') {
 			throw new TypeError('Expected config file path to be a string');
 		}
@@ -243,8 +243,8 @@ export default class XMLStore extends Store {
 		}
 
 		const tmpFile = `${file}.${Date.now()}.tmp`;
-		writeFileSync(tmpFile, this.doc.toString(), { applyOwner: this.applyOwner });
-		moveSync(tmpFile, file, { applyOwner: this.applyOwner });
+		await writeFile(tmpFile, this.doc.toString(), { applyOwner: this.applyOwner });
+		await move(tmpFile, file, { applyOwner: this.applyOwner });
 		log(`Wrote config file: ${highlight(file)}`);
 
 		return this;

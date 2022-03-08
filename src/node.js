@@ -1,4 +1,4 @@
-import { hashValue } from './util';
+import { hashValue } from './util.js';
 
 /**
  * A node is value in an object. It wraps a the value in a proxy so that we can listen for when the

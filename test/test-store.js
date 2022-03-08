@@ -1,4 +1,5 @@
-import { Store } from '../dist/index';
+import { expect } from 'chai';
+import { Store } from '../src/index.js';
 
 describe('Store', () => {
 	it('should error instantiating a store base class', () => {
@@ -15,7 +16,7 @@ describe('Store', () => {
 		}).to.throw(TypeError, 'Expected store options to be an object');
 	});
 
-	it('should error when calling un-implemented store API', () => {
+	it('should error when calling un-implemented store API', async () => {
 		class MockStore extends Store {}
 		const store = new MockStore();
 
@@ -31,17 +32,17 @@ describe('Store', () => {
 			store.has();
 		}).to.throw(Error, 'has() not implemented');
 
-		expect(() => {
-			store.load();
-		}).to.throw(Error, 'load() not implemented');
+		await expect(
+			store.load()
+		).to.eventually.be.rejectedWith(Error, 'load() not implemented');
 
 		expect(() => {
 			store.merge();
 		}).to.throw(Error, 'merge() not implemented');
 
-		expect(() => {
-			store.save();
-		}).to.throw(Error, 'save() not implemented');
+		await expect(
+			store.save()
+		).to.eventually.be.rejectedWith(Error, 'save() not implemented');
 
 		expect(() => {
 			store.set();

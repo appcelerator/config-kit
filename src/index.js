@@ -1,16 +1,11 @@
-/* istanbul ignore if */
-if (!Error.prepareStackTrace) {
-	require('source-map-support/register');
-}
-
-import Config from './config';
+import Config from './config.js';
 import Joi from 'joi';
-import JSStore from './stores/js-store';
-import JSONStore from './stores/json-store';
-import XMLStore from './stores/xml-store';
-import Layer from './layer';
-import Node from './node';
-import Store from './store';
+import JSStore from './stores/js-store.js';
+import JSONStore from './stores/json-store.js';
+import XMLStore from './stores/xml-store.js';
+import Layer from './layer.js';
+import Node from './node.js';
+import Store from './store.js';
 
 export default Config;
 export {

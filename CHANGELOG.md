@@ -1,3 +1,15 @@
+# v2.0.0 (Mar 8, 2022)
+
+ * BREAKING CHANGE: Require Node.js 14.15.0 LTS or newer.
+ * BREAKING CHANGE: Immediately after creating a `Config` instance, you must call `init()`.
+   For example, `new Config({ })` becomes `await new Config().init({ })`.
+ * BREAKING CHANGE: `Config` methods `load()`, `pop()`, `push()`, `save()`, `set()`, `shift()`, and
+   `unshift()` methods are now async.
+ * BREAKING CHANGE: `LayerList` methods `add()` and `set()` are now async.
+ * BREAKING CHANGE: `.js` store no longer supports CommonJS modules; only ES modules are supported.
+ * chore: Updated dependencies.
+ * chore: Replaced Travis with GitHub action.
+
 # v1.7.2 (Dec 17, 2021)
 
  * chore: Switched from `xmldom` to `@xmldom/xmldom`.

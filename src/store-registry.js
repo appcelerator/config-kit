@@ -1,4 +1,4 @@
-import Store from './store';
+import Store from './store.js';
 import snooplogg from 'snooplogg';
 
 const { log } = snooplogg('config-kit')('types');
@@ -37,7 +37,6 @@ export default class StoreRegistry {
 		if (this.types[cls.extension] === cls) {
 			log(`Store type "${cls.name}" already registered`);
 		} else {
-			log(`Registering store type "${cls.name}" for "${cls.extension}" files`);
 			this.types[cls.extension] = cls;
 		}
 
