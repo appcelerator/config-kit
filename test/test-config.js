@@ -3,8 +3,9 @@ import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 import { expect } from 'chai';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(new URL('', import.meta.url).pathname);
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const tmpDir = tmp.dirSync({
 	mode: '755',

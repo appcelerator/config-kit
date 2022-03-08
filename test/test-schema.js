@@ -1,8 +1,9 @@
 import Config, { Joi } from '../src/index.js';
 import path from 'path';
 import { expect } from 'chai';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(new URL('', import.meta.url).pathname);
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 describe('Schema', () => {
 	after(() => {

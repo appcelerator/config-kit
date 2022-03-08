@@ -321,7 +321,7 @@ export default class Layer {
 				}
 			} else if (ext === '.js') {
 				try {
-					schema = await import(schema);
+					schema = await import(`file://${schema}`);
 					if (schema?.default) {
 						schema = schema.default;
 					}

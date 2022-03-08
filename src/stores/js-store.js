@@ -31,7 +31,7 @@ export default class JSStore extends JSONStore {
 		}
 
 		log(`Loading ${highlight(file)}`);
-		let data = await import(file);
+		let data = await import(`file://${file}`);
 
 		if (data?.default) {
 			data = data.default;

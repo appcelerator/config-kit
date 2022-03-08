@@ -4,10 +4,11 @@ import path from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import { expect } from 'chai';
+import { fileURLToPath } from 'url';
 
 chai.use(sinonChai);
 
-const __dirname = path.dirname(new URL('', import.meta.url).pathname);
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 describe('JSONStore', () => {
 	describe('Constructor', () => {

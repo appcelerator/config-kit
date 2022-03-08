@@ -2,10 +2,11 @@ import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import Config, { JSStore } from '../src/index.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 chai.use(chaiAsPromised);
 
-const __dirname = path.dirname(new URL('', import.meta.url).pathname);
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 describe('JSStore', () => {
 	describe('Constructor', () => {
