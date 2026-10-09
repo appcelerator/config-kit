@@ -1,3 +1,13 @@
+# v3.0.0 (Oct 9, 2026)
+
+ * BREAKING CHANGE: Require Node.js 22.16.0 or newer.
+ * BREAKING CHANGE: `XMLStore` now throws when adding a second root element; XML documents may only have one.
+ * chore: Security updates, including `@xmldom/xmldom` 0.8.15.
+ * chore: Updated dependencies: `fs-extra`, `import-fresh`, `joi`, and dev dependencies `c8`, `chai`,
+   `chai-as-promised`, `sinon`, and `sinon-chai`.
+ * chore: Migrated ESLint to v10 with a flat config (`eslint.config.js`).
+ * chore: Updated GitHub workflow actions and test against Node.js 22, 24, and 26.
+
 # v2.1.0 (May 20, 2022)
 
  * fix: Added missing `src` directory.

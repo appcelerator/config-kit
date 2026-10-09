@@ -134,7 +134,7 @@ describe('Schema', () => {
 			new Config().init({
 				schema
 			})
-		).to.eventually.be.rejectedWith(Error, `Failed to parse schema json file: ${schema}: Unexpected token { in JSON at position 1`);
+		).to.eventually.be.rejectedWith(Error, /Failed to parse schema json file: .*bad2\.json: (Unexpected token \{|Expected property name or '\}') in JSON at position 1/);
 	});
 
 	it('should load a schema .js file', async () => {

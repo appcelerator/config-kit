@@ -129,13 +129,13 @@ export default class Config {
 			this.stores.add(store);
 		}
 
-		let { store } = opts;
+		const { store } = opts;
 		if (store) {
 			// if we have an explicit `store`, then register it's class
 			this.stores.add(store instanceof Store ? Object.getPrototypeOf(store).constructor : store);
 		} else if (opts.file) {
 			const StoreClass = this.stores.get(path.extname(opts.file));
-			store = new StoreClass();
+			this.stores.get(path.extname(opts.file));
 		}
 
 		this.layers = await new LayerList().init({
