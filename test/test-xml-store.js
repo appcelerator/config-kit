@@ -1,4 +1,3 @@
-/* eslint-disable quote-props */
 
 // import Config, { Joi } from 'config-kit';
 // import fs from 'fs-extra';
@@ -75,29 +74,36 @@ describe('XMLStore', () => {
 				'<foo>bar</foo>'
 			].join('\n'));
 
-			store.set([ 'pi' ], 3.14);
-			expect(store.get()).to.deep.equal({ foo: 'bar', pi: 3.14 });
-			expect(store.get([ 'pi' ])).to.equal(3.14);
+			expect(() => store.set([ 'pi' ], 3.14)).to.throw(Error, 'Cannot add <pi>: XML documents may only have one root element');
+		});
+
+		it('should set nested values under a single root', () => {
+			const store = new XMLStore();
+			store.set([ 'root', 'pi' ], 3.14);
+			expect(store.get()).to.deep.equal({ root: { pi: 3.14 } });
+			expect(store.get([ 'root', 'pi' ])).to.equal(3.14);
 			expect(store.toString()).to.equal([
 				'<?xml version="1.0" encoding="UTF-8"?>',
-				'<foo>bar</foo>',
-				'<pi>3.14</pi>'
+				'<root>',
+				'	<pi>3.14</pi>',
+				'</root>'
 			].join('\n'));
 
-			store.set([ 'a', 'b', 'c' ], [ 'v1', 'v2', 'v3' ]);
-			expect(store.get()).to.deep.equal({ foo: 'bar', pi: 3.14, a: { b: { c: [ 'v1', 'v2', 'v3' ] } } });
-			expect(store.get([ 'a', 'b', 'c' ])).to.deep.equal([ 'v1', 'v2', 'v3' ]);
+			store.set([ 'root', 'a', 'b', 'c' ], [ 'v1', 'v2', 'v3' ]);
+			expect(store.get()).to.deep.equal({ root: { pi: 3.14, a: { b: { c: [ 'v1', 'v2', 'v3' ] } } } });
+			expect(store.get([ 'root', 'a', 'b', 'c' ])).to.deep.equal([ 'v1', 'v2', 'v3' ]);
 			expect(store.toString()).to.equal([
 				'<?xml version="1.0" encoding="UTF-8"?>',
-				'<foo>bar</foo>',
-				'<pi>3.14</pi>',
-				'<a>',
-				'	<b>',
-				'		<c>v1</c>',
-				'		<c>v2</c>',
-				'		<c>v3</c>',
-				'	</b>',
-				'</a>'
+				'<root>',
+				'	<pi>3.14</pi>',
+				'	<a>',
+				'		<b>',
+				'			<c>v1</c>',
+				'			<c>v2</c>',
+				'			<c>v3</c>',
+				'		</b>',
+				'	</a>',
+				'</root>'
 			].join('\n'));
 		});
 

@@ -68,6 +68,10 @@ export function cast(value, type) {
  */
 export function createDOMNode(name, value, parent) {
 	const doc = (parent.ownerDocument || parent);
+	if (parent === doc && doc.documentElement) {
+		throw new Error(`Cannot add <${name}>: XML documents may only have one root element`);
+	}
+
 	const parentIndent = parent.previousSibling?.nodeType === dom.TEXT_NODE && parent.previousSibling.textContent.match(/[ \t]*$/)?.[0] || '';
 	let postText;
 

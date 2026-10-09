@@ -1,4 +1,4 @@
-import chai from 'chai';
+import * as chai from 'chai';
 import Config, { JSONStore } from '../src/index.js';
 import path from 'path';
 import sinon from 'sinon';
@@ -47,7 +47,7 @@ describe('JSONStore', () => {
 			const cfg = await new Config().init();
 			await expect(
 				cfg.load(path.join(__dirname, 'fixtures', 'json', 'empty.json'))
-			).to.eventually.be.rejectedWith(Error, 'Failed to load config file: Unexpected end of JSON input');
+			).to.eventually.be.rejectedWith(Error, /Failed to load config file: (Unexpected end of JSON input|Expected property name or '}' in JSON)/);
 		});
 
 		it('should error if file is a directory', async () => {
@@ -68,7 +68,7 @@ describe('JSONStore', () => {
 			const cfg = await new Config().init();
 			await expect(
 				cfg.load(path.join(__dirname, 'fixtures', 'json', 'bad-syntax.json'))
-			).to.eventually.be.rejectedWith(Error, 'Failed to load config file: Unexpected end of JSON input');
+			).to.eventually.be.rejectedWith(Error, /Failed to load config file: (Unexpected end of JSON input|Expected property name or '}' in JSON)/);
 		});
 
 		it('should error if config does\'t contain an object', async () => {
