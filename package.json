@@ -16,36 +16,38 @@
   ],
   "scripts": {
     "coverage": "c8 npm run test",
-    "lint": "eslint --ignore-pattern test/fixtures src test",
+    "lint": "eslint src test",
     "prepublishOnly": "npm run lint",
     "test": "npm run lint && mocha test/**/test-*.js --reporter spec"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.8.2",
+    "@xmldom/xmldom": "^0.8.15",
     "detect-indent": "^7.0.0",
-    "fs-extra": "^10.1.0",
-    "import-fresh": "^3.3.0",
-    "joi": "^17.6.0",
-    "snooplogg": "^5.0.0"
+    "fs-extra": "^11.4.1",
+    "import-fresh": "^4.0.1",
+    "joi": "^18.2.9",
+    "snooplogg": "5.1.0"
   },
   "devDependencies": {
-    "c8": "^7.11.3",
-    "chai": "^4.3.6",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "^8.15.0",
-    "eslint-plugin-chai-expect": "^3.0.0",
-    "eslint-plugin-mocha": "^10.0.4",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-security": "^1.5.0",
-    "mocha": "^10.0.0",
-    "sinon": "^14.0.0",
-    "sinon-chai": "^3.7.0",
+    "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
+    "chai": "^6.3.0",
+    "chai-as-promised": "^8.0.2",
+    "eslint": "^10.12.0",
+    "eslint-plugin-chai-expect": "^4.1.1",
+    "eslint-plugin-mocha": "^12.0.2",
+    "eslint-plugin-promise": "^7.3.0",
+    "eslint-plugin-security": "^4.2.0",
+    "globals": "^17.13.0",
+    "mocha": "^12.0.0",
+    "sinon": "^22.1.0",
+    "sinon-chai": "^4.0.1",
     "tmp": "^0.2.1"
   },
   "homepage": "https://github.com/appcelerator/config-kit",
   "bugs": "https://github.com/appcelerator/config-kit/issues",
   "repository": "https://github.com/appcelerator/config-kit",
   "engines": {
-    "node": ">=14.15.0"
+    "node": ">=22.16.0"
   }
 }

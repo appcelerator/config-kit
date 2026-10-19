@@ -1,4 +1,5 @@
-import chai, { expect } from 'chai';
+import * as chai from 'chai';
+import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import Config, { JSStore } from '../src/index.js';
 import path from 'path';

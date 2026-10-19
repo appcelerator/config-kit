@@ -317,7 +317,7 @@ export default class Layer {
 				try {
 					schema = await fs.readJson(schema);
 				} catch (e) {
-					throw new Error(`Failed to parse schema json file: ${e.message}`);
+					throw new Error(`Failed to parse schema json file: ${e.message}`, { cause: e });
 				}
 			} else if (ext === '.js') {
 				try {
@@ -326,7 +326,7 @@ export default class Layer {
 						schema = schema.default;
 					}
 				} catch (e) {
-					throw new Error(`Failed to parse schema js file: ${e.message}`);
+					throw new Error(`Failed to parse schema js file: ${e.message}`, { cause: e });
 				}
 
 				if (typeof schema === 'function') {

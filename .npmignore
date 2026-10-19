@@ -1,7 +1,7 @@
 ._*
 .babelrc
 .DS_Store
-.eslintrc
+eslint.config.js
 .git*
 .nyc_output
 .travis.yml

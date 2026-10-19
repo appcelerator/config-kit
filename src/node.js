@@ -210,7 +210,6 @@ export default class Node {
 				let result = true;
 
 				if (Object.prototype.hasOwnProperty.call(target, prop)) {
-					// eslint-disable-next-line no-unused-expressions
 					target[prop]?.[Node.Meta]?.parents.delete(node);
 					result = delete target[prop];
 
@@ -256,7 +255,6 @@ export default class Node {
 							const { hash } = internal;
 							const arr = Array.prototype.splice.call(target, start, deleteCount, ...items);
 							for (const item of arr) {
-								// eslint-disable-next-line no-unused-expressions
 								item?.[Node.Meta]?.parents.delete(node);
 							}
 
@@ -280,7 +278,7 @@ export default class Node {
 					throw new Error('Cannot set object property to itself');
 				}
 
-				let hash = null;
+				let hash;
 				const desc = Object.getOwnPropertyDescriptor(target, prop);
 
 				if (value && typeof value === 'object' && !(value instanceof Date) && value !== process.env && value !== JSON && value !== Math) {
